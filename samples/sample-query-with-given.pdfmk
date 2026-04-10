@@ -1,7 +1,7 @@
 {
 	pageMargins: [40, 40, 40, 60],
 	footer:
-		params(currentPage, pageCount) {
+		given(currentPage, pageCount) {
 			text: %{var:footerPrefix}%,
 			alignment: 'center',
 			margin: [0, 20, 0, 0]
@@ -16,7 +16,7 @@
 				headerRows: 1,
 				widths: [100, '*', 80],
 				heights:
-					params(row) {
+					given(row) {
 						%{(row + 1) * 25}%
 					},
 				body: [
@@ -32,15 +32,15 @@
 			},
 			layout: {
 				hLineWidth:
-					params(i, node) {
+					given(i, node) {
 						%{(i == 0 || i == (node.table.body|length)) ? 2 : 1}%
 					},
 				hLineColor:
-					params(i, node) {
+					given(i, node) {
 						%{(i == 0 || i == (node.table.body|length)) ? "black" : "gray"}%
 					},
 				fillColor:
-					params(rowIndex, node, columnIndex) {
+					given(rowIndex, node, columnIndex) {
 						%{rowIndex % 2 == 0 ? "#f5f5f5" : "white"}%
 					}
 			}

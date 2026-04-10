@@ -1,6 +1,6 @@
 import jexl from 'jexl';
 import { EvalError } from './errors';
-import { Context } from './types';
+import { Vars } from './types';
 
 // Transforms for JS-like property access
 jexl.addTransform('length', (val: unknown) => {
@@ -23,7 +23,7 @@ function preprocessExpr(exprStr: string): string {
   return processed;
 }
 
-export function evalExpression(exprStr: string, scope: Context): unknown {
+export function evalExpression(exprStr: string, scope: Vars): unknown {
   try {
     const processed = preprocessExpr(exprStr);
     return jexl.evalSync(processed, scope);

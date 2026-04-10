@@ -1,10 +1,10 @@
 import { ASTNode } from '../parser';
-import { Context } from './types';
+import { Vars } from './types';
 import { evalNode } from './eval-node';
 
 export { EvalError } from './errors';
-export { Context } from './types';
+export { Vars } from './types';
 
-export function evaluate(ast: ASTNode, context: Context = {}): unknown {
-  return evalNode(ast, context);
+export function evaluate(ast: ASTNode, vars: Vars = {}): unknown {
+  return evalNode(ast, vars);
 }

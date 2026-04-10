@@ -16,7 +16,7 @@ describe('decode', () => {
     expect(result).toEqual({ text: 'Alice' });
   });
 
-  it('evaluates expressions with context', () => {
+  it('evaluates expressions with vars', () => {
     const result = decode('{ size: %{base * 2}% }', { base: 10 }) as any;
     expect(result).toEqual({ size: 20 });
   });
@@ -27,7 +27,7 @@ describe('decode', () => {
   });
 
   it('decodes a function that returns an expression', () => {
-    const result = decode('{ heights: params(row) { %{(row + 1) * 25}% } }') as any;
+    const result = decode('{ heights: given(row) { %{(row + 1) * 25}% } }') as any;
     expect(typeof result.heights).toBe('function');
     expect(result.heights(0)).toBe(25);
     expect(result.heights(1)).toBe(50);
@@ -36,7 +36,7 @@ describe('decode', () => {
 
   it('decodes a function that returns an object', () => {
     const result = decode(`{
-      margins: params(currentPage, pageCount, pageSize) {
+      margins: given(currentPage, pageCount, pageSize) {
         left: %{currentPage == 1 ? 80 : 40}%,
         top: 40,
         right: %{currentPage == 1 ? 40 : 80}%,
@@ -52,9 +52,9 @@ describe('decode', () => {
     });
   });
 
-  it('function body can access decode context variables', () => {
+  it('function body can access decode vars', () => {
     const result = decode(
-      '{ calc: params(x) { %{x + offset}% } }',
+      '{ calc: given(x) { %{x + offset}% } }',
       { offset: 100 }
     ) as any;
     expect(result.calc(5)).toBe(105);
@@ -75,7 +75,7 @@ describe('decode', () => {
             ]
           },
           layout: {
-            hLineWidth: params(i, node) { %{i == 0 ? 2 : 1}% }
+            hLineWidth: given(i, node) { %{i == 0 ? 2 : 1}% }
           }
         }
       ],
@@ -112,7 +112,7 @@ describe('decode', () => {
     const loremIpsum = 'Lorem ipsum dolor sit amet. ';
     const result = decode(`{
       pageMargins:
-        params(currentPage, pageCount, pageSize) {
+        given(currentPage, pageCount, pageSize) {
           left: %{currentPage == 1 ? 80 : 40}%,
           top: 40,
           right: %{currentPage == 1 ? 40 : 80}%,
@@ -141,20 +141,20 @@ describe('decode', () => {
   });
 
   it('decodes function returning a literal', () => {
-    const result = decode('{ fn: params(x) { %{x * 2}% } }') as any;
+    const result = decode('{ fn: given(x) { %{x * 2}% } }') as any;
     expect(result.fn(5)).toBe(10);
     expect(result.fn(0)).toBe(0);
   });
 
   it('decodes function returning an array', () => {
-    const result = decode('{ fn: params(x) { [%{x}%, %{x + 1}%] } }') as any;
+    const result = decode('{ fn: given(x) { [%{x}%, %{x + 1}%] } }') as any;
     expect(result.fn(3)).toEqual([3, 4]);
   });
 
   it('supports property access in expressions', () => {
     const result = decode(`{
       layout: {
-        hLineWidth: params(i, node) {
+        hLineWidth: given(i, node) {
           %{(i == 0 || i == node.table.body|length) ? 2 : 1}%
         }
       }
@@ -167,7 +167,7 @@ describe('decode', () => {
 
   it('supports .length auto-converted to |length', () => {
     const result = decode(`{
-      fn: params(i, node) {
+      fn: given(i, node) {
         %{i == node.items.length ? "last" : "other"}%
       }
     }`) as any;
@@ -178,7 +178,7 @@ describe('decode', () => {
   it('decodes pdfmake zebra stripe pattern', () => {
     const result = decode(`{
       layout: {
-        fillColor: params(rowIndex, node, columnIndex) {
+        fillColor: given(rowIndex, node, columnIndex) {
           %{rowIndex % 2 == 0 ? "#CCCCCC" : null}%
         }
       }

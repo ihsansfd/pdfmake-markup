@@ -22,14 +22,14 @@ function parseFunctionBody(stream: TokenStream): ASTNode {
 }
 
 export function parseFunction(stream: TokenStream): FunctionNode {
-  const paramsToken = stream.advance(); // consume PARAMS token
+  const givenToken = stream.advance(); // consume GIVEN token
   stream.expectThenAdvance(TokenType.LBRACE);
   const body = parseFunctionBody(stream);
   stream.expectThenAdvance(TokenType.RBRACE);
 
   return {
     type: 'Function',
-    params: paramsToken.value as string[],
+    given: givenToken.value as string[],
     body,
   };
 }

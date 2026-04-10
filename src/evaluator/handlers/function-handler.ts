@@ -1,14 +1,14 @@
 import { FunctionNode } from '../../parser';
-import { Context } from '../types';
+import { Vars } from '../types';
 import { evalNode } from '../eval-node';
 
-export function evalFunction(node: FunctionNode, context: Context): (...args: unknown[]) => unknown {
-  const { params, body } = node;
+export function evalFunction(node: FunctionNode, vars: Vars): (...args: unknown[]) => unknown {
+  const { given, body } = node;
 
   return function (...args: unknown[]): unknown {
-    const fnScope: Context = { ...context };
-    for (let i = 0; i < params.length; i++) {
-      fnScope[params[i]] = args[i];
+    const fnScope: Vars = { ...vars };
+    for (let i = 0; i < given.length; i++) {
+      fnScope[given[i]] = args[i];
     }
     return evalNode(body, fnScope);
   };

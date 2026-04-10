@@ -17,7 +17,7 @@ pdfmake.addFonts({
 const input = process.argv[2];
 if (!input) {
   console.error('Usage: node sample-runner.js <pdfmk-file>');
-  console.error('  e.g. node sample-runner.js sample-query-with-params');
+  console.error('  e.g. node sample-runner.js sample-query-with-given');
   process.exit(1);
 }
 
@@ -35,8 +35,8 @@ if (!fs.existsSync(filePath)) {
   process.exit(1);
 }
 
-// Sample context data — in a real app this would come from your backend
-const context = {
+// Sample vars — in a real app this would come from your backend
+const vars = {
   title: 'Sample Invoice',
   subtitle: 'Generated using pdfmake-markup',
   footerPrefix: 'pdfmake-markup sample',
@@ -44,7 +44,7 @@ const context = {
 
 // Read, decode, generate
 const markup = fs.readFileSync(filePath, 'utf-8');
-const docDefinition = pdfmakeMarkup.decode(markup, context);
+const docDefinition = pdfmakeMarkup.decode(markup, vars);
 
 const pdfsDir = path.join(__dirname, 'samples', 'pdfs');
 if (!fs.existsSync(pdfsDir)) {

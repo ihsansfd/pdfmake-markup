@@ -38,6 +38,6 @@ export interface ArrayNode {
 
 export interface FunctionNode {
   type: 'Function';
-  params: string[];
+  given: string[];
   body: ASTNode;
 }

@@ -1,6 +1,6 @@
 import { Token, TokenType } from '../types';
 import { Scanner } from '../scanner';
-import { readParams } from './params-reader';
+import { readGiven } from './given-reader';
 
 const KEYWORD_MAP: Record<string, () => { type: TokenType; value: unknown }> = {
   'true':      () => ({ type: TokenType.BOOLEAN, value: true }),
@@ -19,8 +19,8 @@ export function readIdentifierOrKeyword(scanner: Scanner): Token {
     scanner.advance();
   }
 
-  if (name === 'params') {
-    return readParams(scanner, startLine, startCol);
+  if (name === 'given') {
+    return readGiven(scanner, startLine, startCol);
   }
 
   const keyword = KEYWORD_MAP[name];

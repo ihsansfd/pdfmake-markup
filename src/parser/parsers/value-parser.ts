@@ -14,7 +14,7 @@ type ValueParser = (stream: TokenStream) => ASTNode;
 const VALUE_PARSERS: Record<string, ValueParser> = {
   [TokenType.LBRACE]:    parseObject,
   [TokenType.LBRACKET]:  parseArray,
-  [TokenType.PARAMS]:    parseFunction,
+  [TokenType.GIVEN]:     parseFunction,
   [TokenType.EXPR]:      parseExpr,
   [TokenType.VAR]:       parseVar,
   [TokenType.STRING]:    parseLiteral,

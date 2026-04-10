@@ -43,24 +43,24 @@ describe('Parser', () => {
   });
 
   it('parses a function with object body', () => {
-    const ast = parseStr('params(a, b) { x: %{a + b}% }') as FunctionNode;
+    const ast = parseStr('given(a, b) { x: %{a + b}% }') as FunctionNode;
     expect(ast.type).toBe('Function');
-    expect(ast.params).toEqual(['a', 'b']);
+    expect(ast.given).toEqual(['a', 'b']);
     const body = ast.body as ObjectNode;
     expect(body.type).toBe('Object');
     expect(body.properties[0]!.key).toBe('x');
   });
 
   it('parses a function with expression body', () => {
-    const ast = parseStr('params(row) { %{(row + 1) * 25}% }') as FunctionNode;
+    const ast = parseStr('given(row) { %{(row + 1) * 25}% }') as FunctionNode;
     expect(ast.type).toBe('Function');
-    expect(ast.params).toEqual(['row']);
+    expect(ast.given).toEqual(['row']);
     expect(ast.body.type).toBe('Expr');
     expect((ast.body as any).expression).toBe('(row + 1) * 25');
   });
 
   it('parses function as object property value', () => {
-    const ast = parseStr('{ heights: params(row) { %{(row + 1) * 25}% } }') as ObjectNode;
+    const ast = parseStr('{ heights: given(row) { %{(row + 1) * 25}% } }') as ObjectNode;
     expect(ast.properties[0]!.key).toBe('heights');
     expect(ast.properties[0]!.value.type).toBe('Function');
   });

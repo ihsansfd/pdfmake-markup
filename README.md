@@ -67,23 +67,23 @@ decode(markup, { base: 10, score: 95 });
 // => { fontSize: 20, color: 'green' }
 ```
 
-### Functions: `params(...) { }`
+### Functions: `given(...) { }`
 
 Becomes a real JavaScript function. Expressions inside the body are evaluated each time the function is called, with access to both function arguments and decode context.
 
 ```
 {
   table: {
-    heights: params(row) {
+    heights: given(row) {
       %{(row + 1) * 25}%
     },
     body: [["A", "B"], ["C", "D"]]
   },
   layout: {
-    hLineWidth: params(i, node) {
+    hLineWidth: given(i, node) {
       %{(i == 0 || i == (node.table.body|length)) ? 2 : 1}%
     },
-    fillColor: params(rowIndex, node, columnIndex) {
+    fillColor: given(rowIndex, node, columnIndex) {
       %{rowIndex % 2 == 0 ? "#CCCCCC" : null}%
     }
   }
@@ -91,9 +91,9 @@ Becomes a real JavaScript function. Expressions inside the body are evaluated ea
 ```
 
 Function bodies can return:
-- A single expression: `params(x) { %{x * 2}% }`
-- An object: `params(page) { left: %{page % 2 == 0 ? 80 : 40}%, top: 40 }`
-- An array: `params(x) { [%{x}%, %{x + 1}%] }`
+- A single expression: `given(x) { %{x * 2}% }`
+- An object: `given(page) { left: %{page % 2 == 0 ? 80 : 40}%, top: 40 }`
+- An array: `given(x) { [%{x}%, %{x + 1}%] }`
 
 ### Comments
 
@@ -127,12 +127,12 @@ Expressions use [jexl](https://github.com/TomFrost/Jexl) syntax, which is simila
 
 ## API
 
-### `decode(markup: string, context?: Record<string, unknown>): unknown`
+### `decode(markup: string, vars?: Record<string, unknown>): unknown`
 
 Parses a `.pdfmk` markup string and returns a JavaScript object.
 
 - **markup** — the `.pdfmk` string
-- **context** — variables available to `%{var:name}%` and `%{expr}%`
+- **vars** — variables available to `%{var:name}%` and `%{expr}%`
 
 ## License
 

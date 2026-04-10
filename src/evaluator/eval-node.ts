@@ -1,6 +1,6 @@
 import { ASTNode } from '../parser';
 import { EvalError } from './errors';
-import { Context } from './types';
+import { Vars } from './types';
 import {
   evalLiteral,
   evalVar,
@@ -10,21 +10,21 @@ import {
   evalFunction,
 } from './handlers';
 
-type NodeHandler = (node: ASTNode, context: Context) => unknown;
+type NodeHandler = (node: ASTNode, vars: Vars) => unknown;
 
 const NODE_HANDLERS: Record<string, NodeHandler> = {
-  Literal:  (node, _ctx) => evalLiteral(node as any),
-  Var:      (node, ctx) => evalVar(node as any, ctx),
-  Expr:     (node, ctx) => evalExpr(node as any, ctx),
-  Object:   (node, ctx) => evalObject(node as any, ctx),
-  Array:    (node, ctx) => evalArray(node as any, ctx),
-  Function: (node, ctx) => evalFunction(node as any, ctx),
+  Literal:  (node, _vars) => evalLiteral(node as any),
+  Var:      (node, vars) => evalVar(node as any, vars),
+  Expr:     (node, vars) => evalExpr(node as any, vars),
+  Object:   (node, vars) => evalObject(node as any, vars),
+  Array:    (node, vars) => evalArray(node as any, vars),
+  Function: (node, vars) => evalFunction(node as any, vars),
 };
 
-export function evalNode(node: ASTNode, context: Context): unknown {
+export function evalNode(node: ASTNode, vars: Vars): unknown {
   const handler = NODE_HANDLERS[node.type];
   if (!handler) {
     throw new EvalError(`Unknown AST node type: ${node.type}`);
   }
-  return handler(node, context);
+  return handler(node, vars);
 }

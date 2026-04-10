@@ -10,7 +10,7 @@ export enum TokenType {
   BOOLEAN = 'BOOLEAN',
   NULL = 'NULL',
   IDENTIFIER = 'IDENTIFIER',
-  PARAMS = 'PARAMS',
+  GIVEN = 'GIVEN',
   EXPR = 'EXPR',
   VAR = 'VAR',
   EOF = 'EOF',

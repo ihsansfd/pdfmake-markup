@@ -1,11 +1,11 @@
 import { ObjectNode } from '../../parser';
-import { Context } from '../types';
+import { Vars } from '../types';
 import { evalNode } from '../eval-node';
 
-export function evalObject(node: ObjectNode, context: Context): Record<string, unknown> {
+export function evalObject(node: ObjectNode, vars: Vars): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const prop of node.properties) {
-    result[prop.key] = evalNode(prop.value, context);
+    result[prop.key] = evalNode(prop.value, vars);
   }
   return result;
 }

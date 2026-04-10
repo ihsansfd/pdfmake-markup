@@ -1,10 +1,10 @@
 import { VarNode } from '../../parser';
 import { EvalError } from '../errors';
-import { Context } from '../types';
+import { Vars } from '../types';
 
-export function evalVar(node: VarNode, context: Context): unknown {
-  if (!(node.name in context)) {
+export function evalVar(node: VarNode, vars: Vars): unknown {
+  if (!(node.name in vars)) {
     throw new EvalError(`Undefined variable: ${node.name}`);
   }
-  return context[node.name];
+  return vars[node.name];
 }

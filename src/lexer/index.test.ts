@@ -63,9 +63,9 @@ describe('Lexer', () => {
     expect(tokens[0]!.value).toBe('x + 1');
   });
 
-  it('tokenizes params(...)', () => {
-    const tokens = tokenize('params(a, b, c) { }');
-    expect(tokens[0]!.type).toBe(TokenType.PARAMS);
+  it('tokenizes given(...)', () => {
+    const tokens = tokenize('given(a, b, c) { }');
+    expect(tokens[0]!.type).toBe(TokenType.GIVEN);
     expect(tokens[0]!.value).toEqual(['a', 'b', 'c']);
   });
 

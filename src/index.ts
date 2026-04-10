@@ -1,13 +1,13 @@
 import { tokenize } from './lexer';
 import { parse } from './parser';
-import { evaluate, Context } from './evaluator';
+import { evaluate, Vars } from './evaluator';
 
 export { TokenType, Token, LexerError } from './lexer';
 export { ASTNode, ParseError } from './parser';
-export { EvalError, Context } from './evaluator';
+export { EvalError, Vars } from './evaluator';
 
-export function decode(markup: string, context: Context = {}): unknown {
+export function decode(markup: string, vars: Vars = {}): unknown {
   const tokens = tokenize(markup);
   const ast = parse(tokens);
-  return evaluate(ast, context);
+  return evaluate(ast, vars);
 }
