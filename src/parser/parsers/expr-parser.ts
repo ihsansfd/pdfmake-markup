@@ -2,6 +2,6 @@ import { ExprNode } from '../types';
 import { TokenStream } from '../token-stream';
 
 export function parseExpr(stream: TokenStream): ExprNode {
-  const tok = stream.advance();
-  return { type: 'Expr', expression: tok.value as string };
+  const token = stream.advance();
+  return { type: 'Expr', expression: token.value as string };
 }

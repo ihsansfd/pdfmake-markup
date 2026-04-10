@@ -8,15 +8,15 @@ export function parseObjectProperties(stream: TokenStream): ObjectProperty[] {
   const properties: ObjectProperty[] = [];
 
   while (stream.current().type !== TokenType.RBRACE) {
-    const keyTok = stream.current();
+    const keyToken = stream.current();
 
-    if (keyTok.type !== TokenType.IDENTIFIER && keyTok.type !== TokenType.STRING) {
-      throw new ParseError(`Expected property key, got ${keyTok.type}`, keyTok);
+    if (keyToken.type !== TokenType.IDENTIFIER && keyToken.type !== TokenType.STRING) {
+      throw new ParseError(`Expected property key, got ${keyToken.type}`, keyToken);
     }
 
-    const key = keyTok.value as string;
+    const key = keyToken.value as string;
     stream.advance();
-    stream.expect(TokenType.COLON);
+    stream.expectThenAdvance(TokenType.COLON);
 
     const value = parseValue(stream);
     properties.push({ key, value });
@@ -28,8 +28,8 @@ export function parseObjectProperties(stream: TokenStream): ObjectProperty[] {
 }
 
 export function parseObject(stream: TokenStream): ObjectNode {
-  stream.expect(TokenType.LBRACE);
+  stream.expectThenAdvance(TokenType.LBRACE);
   const properties = parseObjectProperties(stream);
-  stream.expect(TokenType.RBRACE);
+  stream.expectThenAdvance(TokenType.RBRACE);
   return { type: 'Object', properties };
 }

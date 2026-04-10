@@ -5,12 +5,12 @@ import { parseObjectProperties } from './object-parser';
 import { parseValue } from './value-parser';
 
 function parseFunctionBody(stream: TokenStream): ASTNode {
-  const tok = stream.current();
+  const token = stream.current();
   const next = stream.peek();
 
   // If current is identifier/string followed by colon → object body (braces already consumed)
   const isObjectBody =
-    (tok.type === TokenType.IDENTIFIER || tok.type === TokenType.STRING) &&
+    (token.type === TokenType.IDENTIFIER || token.type === TokenType.STRING) &&
     next?.type === TokenType.COLON;
 
   if (isObjectBody) {
@@ -22,14 +22,14 @@ function parseFunctionBody(stream: TokenStream): ASTNode {
 }
 
 export function parseFunction(stream: TokenStream): FunctionNode {
-  const paramsTok = stream.advance(); // consume PARAMS token
-  stream.expect(TokenType.LBRACE);
+  const paramsToken = stream.advance(); // consume PARAMS token
+  stream.expectThenAdvance(TokenType.LBRACE);
   const body = parseFunctionBody(stream);
-  stream.expect(TokenType.RBRACE);
+  stream.expectThenAdvance(TokenType.RBRACE);
 
   return {
     type: 'Function',
-    params: paramsTok.value as string[],
+    params: paramsToken.value as string[],
     body,
   };
 }

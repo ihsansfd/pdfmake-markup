@@ -24,13 +24,13 @@ const VALUE_PARSERS: Record<string, ValueParser> = {
 };
 
 export function parseValue(stream: TokenStream): ASTNode {
-  const tok = stream.current();
-  const parser = VALUE_PARSERS[tok.type];
+  const token = stream.current();
+  const parser = VALUE_PARSERS[token.type];
 
   if (!parser) {
     throw new ParseError(
-      `Unexpected token: ${tok.type} (${JSON.stringify(tok.value)})`,
-      tok,
+      `Unexpected token: ${token.type} (${JSON.stringify(token.value)})`,
+      token,
     );
   }
 

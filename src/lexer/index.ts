@@ -46,25 +46,25 @@ function buildCharHandlers(): Map<string, CharHandler> {
 const charHandlers = buildCharHandlers();
 
 function resolveHandler(scanner: Scanner): CharHandler {
-  const ch = scanner.current()!;
+  const current = scanner.current()!;
 
   // Two-char token: %{
-  if (ch === '%' && scanner.peek() === '{') {
+  if (current === '%' && scanner.peek() === '{') {
     return readExprOrVar;
   }
 
-  const handler = charHandlers.get(ch);
+  const handler = charHandlers.get(current);
   if (handler) return handler;
 
   // Negative number
-  if (ch === '-' && /[0-9]/.test(scanner.peek() ?? '')) {
+  if (current === '-' && /[0-9]/.test(scanner.peek() ?? '')) {
     return readNumber;
   }
 
-  if (/[0-9]/.test(ch)) return readNumber;
-  if (/[a-zA-Z_$]/.test(ch)) return readIdentifierOrKeyword;
+  if (/[0-9]/.test(current)) return readNumber;
+  if (/[a-zA-Z_$]/.test(current)) return readIdentifierOrKeyword;
 
-  throw new LexerError(`Unexpected character: ${ch}`, scanner.currentLine, scanner.currentCol);
+  throw new LexerError(`Unexpected character: ${current}`, scanner.currentLine, scanner.currentCol);
 }
 
 export function tokenize(input: string): Token[] {

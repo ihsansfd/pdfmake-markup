@@ -15,17 +15,17 @@ export class TokenStream {
   }
 
   advance(): Token {
-    const tok = this.tokens[this.pos];
+    const token = this.tokens[this.pos];
     this.pos++;
-    return tok;
+    return token;
   }
 
-  expect(type: TokenType): Token {
-    const tok = this.current();
-    if (tok.type !== type) {
+  expectThenAdvance(type: TokenType): Token {
+    const token = this.current();
+    if (token.type !== type) {
       throw new ParseError(
-        `Expected ${type}, got ${tok.type} (${JSON.stringify(tok.value)})`,
-        tok,
+        `Expected ${type}, got ${token.type} (${JSON.stringify(token.value)})`,
+        token,
       );
     }
     return this.advance();
