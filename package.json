@@ -28,11 +28,15 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build && npm test"
+    "verify": "npm run build && npm test",
+    "prepublishOnly": "npm run verify"
   },
   "dependencies": {
     "jexl": "^2.3.0"
