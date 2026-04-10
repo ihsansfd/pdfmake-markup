@@ -1,0 +1,25 @@
+{
+  "name": "pdfmake-markup",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "jexl": "^2.3.0",
+    "pdfmake": "^0.3.7"
+  },
+  "devDependencies": {
+    "@types/jexl": "^2.3.4",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}
