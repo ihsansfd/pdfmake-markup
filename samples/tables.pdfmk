@@ -1,0 +1,93 @@
+{
+  content: [
+    { text: 'Tables', style: 'header' },
+    'Ported from pdfmake/examples/tables.js — showcases for/if for dynamic table generation.',
+
+    // Simple table generated from a row count via `for`.
+    { text: 'A simple generated table (10 rows via `for`)', style: 'subheader' },
+    {
+      style: 'tableExample',
+      table: {
+        body: [
+          ['#', 'Column 1', 'Column 2', 'Column 3'],
+          for(i in %{var:rows}%) {
+            [%{i + 1}%, %{"Row " + (i + 1)}%, %{"A-" + (i + 1)}%, %{"B-" + (i + 1)}%]
+          }
+        ]
+      }
+    },
+
+    // Conditional column — only shown when var is set.
+    { text: 'Conditional header column (toggle via vars)', style: 'subheader' },
+    {
+      style: 'tableExample',
+      table: {
+        headerRows: 1,
+        body: [
+          [
+            { text: 'Name', style: 'tableHeader' },
+            { text: 'Value', style: 'tableHeader' },
+            if(%{var:showExtraColumn}%) { { text: 'Extra', style: 'tableHeader' } }
+          ],
+          for(item in %{var:items}%) {
+            [
+              %{item.name}%,
+              %{item.value}%,
+              if(%{var:showExtraColumn}%) { %{item.extra}% }
+            ]
+          }
+        ]
+      }
+    },
+
+    // Zebra striping via a given() callback — uses $index-style logic at runtime.
+    { text: 'Zebra stripes via given() layout callback', style: 'subheader' },
+    {
+      style: 'tableExample',
+      table: {
+        body: [
+          for(i in %{var:zebraRows}%) {
+            [%{"Row " + (i + 1)}%, %{"Col 2 #" + (i + 1)}%, %{"Col 3 #" + (i + 1)}%]
+          }
+        ]
+      },
+      layout: {
+        fillColor: given(rowIndex, node, columnIndex) {
+          %{rowIndex % 2 == 0 ? "#CCCCCC" : null}%
+        }
+      }
+    },
+
+    // Borders: 2px on outer edges, 1px inside. Uses given() + .length.
+    { text: 'Custom border widths via given()', style: 'subheader' },
+    {
+      style: 'tableExample',
+      table: {
+        widths: ['*', '*', '*'],
+        body: [
+          [{ text: 'H1', style: 'tableHeader' }, { text: 'H2', style: 'tableHeader' }, { text: 'H3', style: 'tableHeader' }],
+          for(i in %{var:borderRows}%) {
+            [%{"Sample " + (i + 1)}%, 'Sample value', 'Sample value']
+          }
+        ]
+      },
+      layout: {
+        hLineWidth: given(i, node) {
+          %{(i == 0 || i == node.table.body.length) ? 2 : 1}%
+        },
+        vLineWidth: given(i, node) {
+          %{(i == 0 || i == node.table.widths.length) ? 2 : 1}%
+        },
+        hLineColor: given(i, node) {
+          %{(i == 0 || i == node.table.body.length) ? "black" : "gray"}%
+        }
+      }
+    }
+  ],
+  styles: {
+    header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+    subheader: { fontSize: 14, bold: true, margin: [0, 15, 0, 5] },
+    tableExample: { margin: [0, 5, 0, 15] },
+    tableHeader: { bold: true, fontSize: 13, color: 'black' }
+  }
+}

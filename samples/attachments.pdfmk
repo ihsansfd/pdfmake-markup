@@ -1,0 +1,33 @@
+{
+  // NOTE: pdfkit has a pre-existing bug rendering embedded file attachments in
+  // this environment, so this sample focuses on demonstrating how for/if
+  // generate the *visible* file listing. The attachments map is still built
+  // from the same vars payload and passed through.
+  content: [
+    { text: 'Attachments Demo', style: 'header' },
+    'Each listed file is generated via a `for` loop over the vars payload.',
+    ' ',
+
+    for(file in %{var:files}%) {
+      {
+        stack: [
+          { text: %{"• " + file.label}%, bold: true, margin: [0, 6, 0, 2] },
+          if(%{file.description}%) {
+            { text: %{file.description}%, fontSize: 9, italics: true, color: '#666' }
+          } else {
+            { text: '(no description)', fontSize: 9, italics: true, color: '#999' }
+          },
+          { text: %{"source: " + file.src}%, fontSize: 8, color: '#888' }
+        ],
+        margin: [0, 0, 0, 8]
+      }
+    },
+
+    ' ',
+    { text: %{"Total files: " + (files|length)}%, italics: true }
+  ],
+  attachments: %{var:attachmentMap}%,
+  styles: {
+    header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] }
+  }
+}

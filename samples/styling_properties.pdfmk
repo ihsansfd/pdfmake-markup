@@ -1,0 +1,52 @@
+{
+  content: [
+    {
+      text: 'Paragraphs can also by styled without using named-styles (this one sets fontSize to 25)',
+      fontSize: 25
+    },
+    'Another paragraph, using default style, this time a little bit longer to make sure, this line will be divided into at least two lines\n\n',
+    {
+      text: 'This paragraph does not use a named-style and sets fontSize to 8 and italics to true',
+      fontSize: 8,
+      italics: true
+    },
+
+    '\n\nText opacity — generated via `for` over an array of opacities:',
+    for(op in %{var:opacities}%) {
+      { text: %{"Hello World (" + op + ")"}%, opacity: %{op}% }
+    },
+
+    '\n\nfontFeatures — each entry is a `for` iteration with an `if` label for the first one:',
+    for(feat in %{var:fontFeatures}%) {
+      {
+        text: %{"Hello World 1234567890" + ($index == 0 ? " [first]" : "")}%,
+        fontFeatures: %{feat}%
+      }
+    },
+
+    '\n\nLeading-space lines from a data array (conditional block):',
+    if(%{var:showJsonBlock}%) {
+      [for(line in %{var:jsonLines}%) {
+        { text: %{line}%, preserveLeadingSpaces: true }
+      }]
+    } else {
+      { text: '(JSON block hidden)', italics: true, color: 'gray' }
+    },
+
+    '\n\nSubscript, superscript — single literal, unchanged:',
+    {
+      text: [
+        'Hello World.',
+        { text: '1, 2', sup: true },
+        " Let's continue our sentence. Notice the leading space."
+      ]
+    },
+    {
+      text: [
+        'Hello',
+        { text: '1, 2', sub: true },
+        ' World'
+      ]
+    }
+  ]
+}

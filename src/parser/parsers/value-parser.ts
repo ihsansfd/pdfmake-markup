@@ -8,6 +8,8 @@ import { parseVar } from './var-parser';
 import { parseObject } from './object-parser';
 import { parseArray } from './array-parser';
 import { parseFunction } from './function-parser';
+import { parseFor } from './for-parser';
+import { parseIf } from './if-parser';
 
 type ValueParser = (stream: TokenStream) => ASTNode;
 
@@ -15,6 +17,8 @@ const VALUE_PARSERS: Record<string, ValueParser> = {
   [TokenType.LBRACE]:    parseObject,
   [TokenType.LBRACKET]:  parseArray,
   [TokenType.GIVEN]:     parseFunction,
+  [TokenType.FOR]:       parseFor,
+  [TokenType.IF]:        parseIf,
   [TokenType.EXPR]:      parseExpr,
   [TokenType.VAR]:       parseVar,
   [TokenType.STRING]:    parseLiteral,

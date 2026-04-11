@@ -13,10 +13,16 @@ const NULL_SENTINEL = '__pdfmk_null__';
 jexl.addTransform('__null__', () => null);
 
 function preprocessExpr(exprStr: string): string {
-  // Convert .length to (expr|length) with proper grouping
+  // Convert .length on arrays/strings to (expr|length). Must run before the
+  // `::length` rewrite so we don't accidentally pipe our injected $loops entry.
   let processed = exprStr.replace(
     /([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*|\[[^\]]+\])*)\.length\b/g,
     '($1|length)',
+  );
+  // Convert loop-scoped meta `name::index` / `name::length` → `$loops.name.index`
+  processed = processed.replace(
+    /([a-zA-Z_$][a-zA-Z0-9_$]*)::(index|length)\b/g,
+    '$loops.$1.$2',
   );
   // Convert null literal to a sentinel that resolves to null
   processed = processed.replace(/\bnull\b/g, `"${NULL_SENTINEL}"|__null__`);

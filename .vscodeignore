@@ -1,0 +1,9 @@
+.git/**
+.github/**
+.vscode/**
+src/**
+samples/**
+sample-runner.js
+vitest.config.js
+tsconfig.json
+package-lock.json

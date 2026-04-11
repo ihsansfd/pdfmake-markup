@@ -13,6 +13,8 @@ const SINGLE_CHAR_TOKENS: Record<string, TokenType> = {
   '}': TokenType.RBRACE,
   '[': TokenType.LBRACKET,
   ']': TokenType.RBRACKET,
+  '(': TokenType.LPAREN,
+  ')': TokenType.RPAREN,
   ':': TokenType.COLON,
   ',': TokenType.COMMA,
 };

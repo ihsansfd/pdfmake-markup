@@ -35,12 +35,18 @@ if (!fs.existsSync(filePath)) {
   process.exit(1);
 }
 
-// Sample vars — in a real app this would come from your backend
-const vars = {
+// Default vars — overridable per-sample via <name>.vars.js sibling file
+let vars = {
   title: 'Sample Invoice',
   subtitle: 'Generated using pdfmake-markup',
   footerPrefix: 'pdfmake-markup sample',
 };
+
+const varsFile = filePath.replace(/\.pdfmk$/, '.vars.js');
+if (fs.existsSync(varsFile)) {
+  const override = require(path.resolve(varsFile));
+  vars = { ...vars, ...override };
+}
 
 // Read, decode, generate
 const markup = fs.readFileSync(filePath, 'utf-8');

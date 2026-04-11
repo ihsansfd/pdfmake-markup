@@ -8,6 +8,8 @@ import {
   evalObject,
   evalArray,
   evalFunction,
+  evalFor,
+  evalIf,
 } from './handlers';
 
 type NodeHandler = (node: ASTNode, vars: Vars) => unknown;
@@ -19,6 +21,8 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
   Object:   (node, vars) => evalObject(node as any, vars),
   Array:    (node, vars) => evalArray(node as any, vars),
   Function: (node, vars) => evalFunction(node as any, vars),
+  For:      (node, vars) => evalFor(node as any, vars),
+  If:       (node, vars) => evalIf(node as any, vars),
 };
 
 export function evalNode(node: ASTNode, vars: Vars): unknown {
