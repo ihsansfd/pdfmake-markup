@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const pdfmake = require('pdfmake');
+const nunjucks = require('nunjucks');
 const pdfmakeMarkup = require('./dist/index');
 
-// Setup fonts
 pdfmake.addFonts({
   Roboto: {
     normal: path.join(__dirname, 'node_modules/pdfmake/build/fonts/Roboto/Roboto-Regular.ttf'),
@@ -13,58 +13,92 @@ pdfmake.addFonts({
   },
 });
 
-// Parse CLI args
 const input = process.argv[2];
 if (!input) {
-  console.error('Usage: node sample-runner.js <pdfmk-file>');
-  console.error('  e.g. node sample-runner.js sample-query-with-given');
+  console.error('Usage: node sample-runner.js <sample-name>');
+  console.error('  e.g. node sample-runner.js basics');
   process.exit(1);
 }
 
-// Resolve file path: accept with or without extension, look in samples/ dir
-let filePath = input;
-if (!filePath.endsWith('.pdfmk')) {
-  filePath += '.pdfmk';
+function resolveFile(name) {
+  const candidates = [
+    name,
+    `${name}.pdfmk.njk`,
+    `${name}.pdfmk`,
+    path.join(__dirname, 'samples', path.basename(name)),
+    path.join(__dirname, 'samples', `${path.basename(name)}.pdfmk.njk`),
+    path.join(__dirname, 'samples', `${path.basename(name)}.pdfmk`),
+  ];
+  return candidates.find((p) => fs.existsSync(p));
 }
-if (!fs.existsSync(filePath)) {
-  filePath = path.join(__dirname, 'samples', path.basename(filePath));
-}
-if (!fs.existsSync(filePath)) {
-  console.error(`File not found: ${input}`);
-  console.error(`Looked in: ${path.resolve(input)}, ${filePath}`);
+
+const filePath = resolveFile(input);
+if (!filePath) {
+  console.error(`Sample not found: ${input}`);
   process.exit(1);
 }
 
-// Default vars — overridable per-sample via <name>.vars.js sibling file
-let vars = {
-  title: 'Sample Invoice',
-  subtitle: 'Generated using pdfmake-markup',
-  footerPrefix: 'pdfmake-markup sample',
-};
-
-const varsFile = filePath.replace(/\.pdfmk$/, '.vars.js');
-if (fs.existsSync(varsFile)) {
-  const override = require(path.resolve(varsFile));
-  vars = { ...vars, ...override };
+function markupLiteral(val) {
+  if (val === null || val === undefined) return 'null';
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (typeof val === 'string') return JSON.stringify(val);
+  if (Array.isArray(val)) return '[' + val.map(markupLiteral).join(',') + ']';
+  if (typeof val === 'object') {
+    return (
+      '{' +
+      Object.entries(val)
+        .map(([k, v]) => {
+          const key = /^[a-zA-Z_$][\w$]*$/.test(k) ? k : JSON.stringify(k);
+          return `${key}:${markupLiteral(v)}`;
+        })
+        .join(',') +
+      '}'
+    );
+  }
+  return 'null';
 }
 
-// Read, decode, generate
-const markup = fs.readFileSync(filePath, 'utf-8');
-const docDefinition = pdfmakeMarkup.decode(markup, vars);
+// Auto-wrap every `{{ expr }}` output tag with the `markup` filter so users
+// don't have to know about it. `{% ... %}` control tags are left alone.
+function autoWrapOutputTags(source) {
+  return source.replace(/\{\{\s*([\s\S]+?)\s*\}\}/g, (_m, expr) => {
+    if (/\|\s*markup(\s*\||\s*$)/.test(expr)) return `{{ ${expr} }}`;
+    return `{{ (${expr}) | markup }}`;
+  });
+}
+
+const isNjk = filePath.endsWith('.pdfmk.njk');
+const rawBaseName = path
+  .basename(filePath)
+  .replace(/\.pdfmk\.njk$/, '')
+  .replace(/\.pdfmk$/, '');
+
+let markup;
+if (isNjk) {
+  const varsFile = filePath.replace(/\.pdfmk\.njk$/, '.vars.js');
+  const vars = fs.existsSync(varsFile) ? require(path.resolve(varsFile)) : {};
+  const env = new nunjucks.Environment(null, { autoescape: false });
+  env.addFilter('markup', markupLiteral);
+  const source = autoWrapOutputTags(fs.readFileSync(filePath, 'utf-8'));
+  markup = env.renderString(source, vars);
+} else {
+  markup = fs.readFileSync(filePath, 'utf-8');
+}
+
+const docDefinition = pdfmakeMarkup.decode(markup);
 
 const pdfsDir = path.join(__dirname, 'samples', 'pdfs');
 if (!fs.existsSync(pdfsDir)) {
   fs.mkdirSync(pdfsDir);
 }
 
-const baseName = path.basename(filePath, '.pdfmk');
-const outputPath = path.join(pdfsDir, `${baseName}.pdf`);
-
+const outputPath = path.join(pdfsDir, `${rawBaseName}.pdf`);
 const now = Date.now();
 const pdf = pdfmake.createPdf(docDefinition);
-pdf.write(outputPath).then(() => {
-  console.log(`Generated: ${outputPath} (${Date.now() - now}ms)`);
-}, (err) => {
-  console.error('PDF generation failed:', err);
-  process.exit(1);
-});
+pdf.write(outputPath).then(
+  () => console.log(`Generated: ${outputPath} (${Date.now() - now}ms)`),
+  (err) => {
+    console.error('PDF generation failed:', err);
+    process.exit(1);
+  },
+);

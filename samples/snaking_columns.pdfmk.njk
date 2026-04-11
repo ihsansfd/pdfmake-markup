@@ -1,3 +1,10 @@
+{%- set LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ' -%}
+{%- set loremShort = '' -%}
+{%- for _ in range(0, 10) -%}{%- set loremShort = loremShort + LOREM -%}{%- endfor -%}
+{%- set lineCount    = range(0, 80) | list -%}
+{%- set textNodeCount = range(0, 30) | list -%}
+{%- set cardCount    = range(0, 25) | list -%}
+{%- set tableRowCount = range(0, 50) | list -%}
 {
   content: [
     { text: 'Snaking Columns Demo', style: 'header' },
@@ -7,7 +14,7 @@
     // Basic snaking column with repeated lorem text
     {
       columns: [
-        { text: %{loremShort}%, width: '*' },
+        { text: {{ loremShort }}, width: '*' },
         { text: '', width: '*' }
       ],
       columnGap: 30,
@@ -24,7 +31,7 @@
       columns: [
         {
           stack: [
-            for(i in %{var:lineCount}%) {
+            for(i in %{ {{ lineCount }} }%) {
               { text: %{"Line " + (i + 1) + ": Lorem ipsum dolor sit amet."}%, fontSize: 9 }
             }
           ]
@@ -35,13 +42,13 @@
       snakingColumns: true
     },
 
-    // Text nodes via `for` + conditional margin on first/last using $index/$length
-    { text: 'Stack of text nodes (with $index/$length awareness)', style: 'sectionTitle', pageBreak: 'before' },
+    // Text nodes via `for` + conditional margin on first/last using loop-scoped meta
+    { text: 'Stack of text nodes (with i::index / i::length awareness)', style: 'sectionTitle', pageBreak: 'before' },
     {
       columns: [
         {
           stack: [
-            for(i in %{var:textNodeCount}%) {
+            for(i in %{ {{ textNodeCount }} }%) {
               {
                 text: %{"Item " + (i + 1) + " — a description"}%,
                 margin: [
@@ -69,7 +76,7 @@
       columns: [
         {
           stack: [
-            for(i in %{var:cardCount}%) {
+            for(i in %{ {{ cardCount }} }%) {
               {
                 stack: [
                   { text: %{"Card " + (i + 1)}%, fontSize: 14, bold: true, margin: [0, 0, 0, 5] },
@@ -103,7 +110,7 @@
             headerRows: 1,
             body: [
               ['Header 1', 'Header 2', 'Header 3'],
-              for(i in %{var:tableRowCount}%) {
+              for(i in %{ {{ tableRowCount }} }%) {
                 [%{"Row " + (i + 1)}%, 'Column 2', 'Column 3']
               }
             ]

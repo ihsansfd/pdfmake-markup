@@ -18,7 +18,6 @@ export enum TokenType {
   IF = 'IF',
   ELSE = 'ELSE',
   EXPR = 'EXPR',
-  VAR = 'VAR',
   EOF = 'EOF',
 }
 

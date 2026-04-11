@@ -1,7 +1,6 @@
 export type ASTNode =
   | LiteralNode
   | ExprNode
-  | VarNode
   | ObjectNode
   | ArrayNode
   | FunctionNode
@@ -16,11 +15,6 @@ export interface LiteralNode {
 export interface ExprNode {
   type: 'Expr';
   expression: string;
-}
-
-export interface VarNode {
-  type: 'Var';
-  name: string;
 }
 
 export interface ObjectProperty {

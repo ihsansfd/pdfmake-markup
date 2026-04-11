@@ -4,7 +4,6 @@ import { TokenStream } from '../token-stream';
 import { ParseError } from '../errors';
 import { parseLiteral } from './literal-parser';
 import { parseExpr } from './expr-parser';
-import { parseVar } from './var-parser';
 import { parseObject } from './object-parser';
 import { parseArray } from './array-parser';
 import { parseFunction } from './function-parser';
@@ -20,7 +19,6 @@ const VALUE_PARSERS: Record<string, ValueParser> = {
   [TokenType.FOR]:       parseFor,
   [TokenType.IF]:        parseIf,
   [TokenType.EXPR]:      parseExpr,
-  [TokenType.VAR]:       parseVar,
   [TokenType.STRING]:    parseLiteral,
   [TokenType.NUMBER]:    parseLiteral,
   [TokenType.BOOLEAN]:   parseLiteral,

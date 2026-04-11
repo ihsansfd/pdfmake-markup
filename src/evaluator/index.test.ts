@@ -11,18 +11,13 @@ describe('decode', () => {
     expect(result).toEqual({ items: [1, 2, { nested: true }] });
   });
 
-  it('substitutes variables', () => {
-    const result = decode('{ text: %{var:name}% }', { name: 'Alice' }) as any;
-    expect(result).toEqual({ text: 'Alice' });
-  });
-
-  it('evaluates expressions with vars', () => {
-    const result = decode('{ size: %{base * 2}% }', { base: 10 }) as any;
+  it('evaluates literal expressions', () => {
+    const result = decode('{ size: %{10 * 2}% }') as any;
     expect(result).toEqual({ size: 20 });
   });
 
   it('evaluates ternary expressions', () => {
-    const result = decode('{ val: %{x > 5 ? 1 : 0}% }', { x: 10 }) as any;
+    const result = decode('{ val: %{10 > 5 ? 1 : 0}% }') as any;
     expect(result).toEqual({ val: 1 });
   });
 
@@ -52,18 +47,10 @@ describe('decode', () => {
     });
   });
 
-  it('function body can access decode vars', () => {
-    const result = decode(
-      '{ calc: given(x) { %{x + offset}% } }',
-      { offset: 100 }
-    ) as any;
-    expect(result.calc(5)).toBe(105);
-  });
-
   it('decodes a pdfmake-like document', () => {
     const result = decode(`{
       content: [
-        { text: %{var:title}%, bold: true, fontSize: 18 },
+        { text: "Invoice", bold: true, fontSize: 18 },
         "Some plain text",
         {
           table: {
@@ -71,7 +58,7 @@ describe('decode', () => {
             widths: [100, '*', 80],
             body: [
               ["Item", "Desc", "Price"],
-              [%{var:item1}%, "Widget", 10]
+              ["Gadget", "Widget", 10]
             ]
           },
           layout: {
@@ -82,7 +69,7 @@ describe('decode', () => {
       styles: {
         header: { fontSize: 18, bold: true }
       }
-    }`, { title: 'Invoice', item1: 'Gadget' }) as any;
+    }`) as any;
 
     expect(result.content[0]).toEqual({ text: 'Invoice', bold: true, fontSize: 18 });
     expect(result.content[1]).toBe('Some plain text');
@@ -91,10 +78,6 @@ describe('decode', () => {
     expect(result.content[2].layout.hLineWidth(0)).toBe(2);
     expect(result.content[2].layout.hLineWidth(1)).toBe(1);
     expect(result.styles).toEqual({ header: { fontSize: 18, bold: true } });
-  });
-
-  it('throws on undefined variable', () => {
-    expect(() => decode('{ x: %{var:missing}% }')).toThrow('Undefined variable: missing');
   });
 
   it('handles comments', () => {
@@ -106,38 +89,6 @@ describe('decode', () => {
       b: 2
     }`) as any;
     expect(result).toEqual({ a: 1, b: 2 });
-  });
-
-  it('decodes the sample-query.pdfmk pattern', () => {
-    const loremIpsum = 'Lorem ipsum dolor sit amet. ';
-    const result = decode(`{
-      pageMargins:
-        given(currentPage, pageCount, pageSize) {
-          left: %{currentPage == 1 ? 80 : 40}%,
-          top: 40,
-          right: %{currentPage == 1 ? 40 : 80}%,
-          bottom: 40
-        },
-      content: [
-        { text: %{var:text}% },
-        '',
-        'Table:',
-        {
-          table: {
-            body: [
-              [{ text: 'Header 1', style: 'tableHeader' }, { text: 'Header 2', style: 'tableHeader' }],
-              [%{var:text}%, %{var:text}%]
-            ]
-          }
-        }
-      ]
-    }`, { text: loremIpsum }) as any;
-
-    expect(typeof result.pageMargins).toBe('function');
-    expect(result.pageMargins(1, 1, {})).toEqual({ left: 80, top: 40, right: 40, bottom: 40 });
-    expect(result.content[0]).toEqual({ text: loremIpsum });
-    expect(result.content[2]).toBe('Table:');
-    expect(result.content[3].table.body[1]).toEqual([loremIpsum, loremIpsum]);
   });
 
   it('decodes function returning a literal', () => {
@@ -196,8 +147,7 @@ describe('decode', () => {
 
   it('expands for loop inside an array', () => {
     const result = decode(
-      '{ content: [for(item in %{var:items}%) { { text: %{item.name}% } }] }',
-      { items: [{ name: 'a' }, { name: 'b' }, { name: 'c' }] },
+      '{ content: [for(item in %{[{name:"a"},{name:"b"},{name:"c"}]}%) { { text: %{item.name}% } }] }',
     ) as any;
     expect(result.content).toEqual([
       { text: 'a' },
@@ -208,8 +158,7 @@ describe('decode', () => {
 
   it('uses name::index for first/last detection', () => {
     const result = decode(
-      '{ items: [for(r in %{var:rows}%) { { text: %{r}%, isFirst: %{r::index == 0}%, isLast: %{r::index == r::length - 1}% } }] }',
-      { rows: ['a', 'b', 'c'] },
+      '{ items: [for(r in %{["a","b","c"]}%) { { text: %{r}%, isFirst: %{r::index == 0}%, isLast: %{r::index == r::length - 1}% } }] }',
     ) as any;
     expect(result.items[0]).toMatchObject({ isFirst: true, isLast: false });
     expect(result.items[1]).toMatchObject({ isFirst: false, isLast: false });
@@ -217,17 +166,13 @@ describe('decode', () => {
   });
 
   it('for loop as top-level value', () => {
-    const result = decode(
-      'for(n in %{var:nums}%) { %{n * 2}% }',
-      { nums: [1, 2, 3] },
-    ) as any;
+    const result = decode('for(n in %{[1,2,3]}%) { %{n * 2}% }') as any;
     expect(result).toEqual([2, 4, 6]);
   });
 
   it('for loop with implicit object body', () => {
     const result = decode(
-      '{ rows: [for(row in %{var:rows}%) { text: %{row}%, bold: true }] }',
-      { rows: ['a', 'b'] },
+      '{ rows: [for(row in %{["a","b"]}%) { text: %{row}%, bold: true }] }',
     ) as any;
     expect(result.rows).toEqual([
       { text: 'a', bold: true },
@@ -237,53 +182,51 @@ describe('decode', () => {
 
   it('if with true condition picks then branch', () => {
     const result = decode(
-      '{ content: [{ text: "header" }, if(%{var:show}%) { { text: "inner" } }] }',
-      { show: true },
+      '{ content: [{ text: "header" }, if(%{true}%) { { text: "inner" } }] }',
     ) as any;
     expect(result.content).toEqual([{ text: 'header' }, { text: 'inner' }]);
   });
 
   it('if with false condition and no else is skipped in array', () => {
     const result = decode(
-      '{ content: [{ text: "a" }, if(%{var:show}%) { { text: "b" } }, { text: "c" }] }',
-      { show: false },
+      '{ content: [{ text: "a" }, if(%{false}%) { { text: "b" } }, { text: "c" }] }',
     ) as any;
     expect(result.content).toEqual([{ text: 'a' }, { text: 'c' }]);
   });
 
   it('if with else branch', () => {
     const result = decode(
-      '{ content: [if(%{var:premium}%) { { text: "Gold" } } else { { text: "Free" } }] }',
-      { premium: false },
+      '{ content: [if(%{false}%) { { text: "Gold" } } else { { text: "Free" } }] }',
     ) as any;
     expect(result.content).toEqual([{ text: 'Free' }]);
   });
 
   it('if with else if chain', () => {
-    const markup = `{
-      content: [
-        if(%{tier == "a"}%) { { text: "A" } }
-        else if(%{tier == "b"}%) { { text: "B" } }
-        else { { text: "other" } }
-      ]
+    const build = (tier: string) => `{
+      pick: given(tier) {
+        [
+          if(%{tier == "a"}%) { { text: "A" } }
+          else if(%{tier == "b"}%) { { text: "B" } }
+          else { { text: "other" } }
+        ]
+      }
     }`;
-    expect((decode(markup, { tier: 'a' }) as any).content).toEqual([{ text: 'A' }]);
-    expect((decode(markup, { tier: 'b' }) as any).content).toEqual([{ text: 'B' }]);
-    expect((decode(markup, { tier: 'c' }) as any).content).toEqual([{ text: 'other' }]);
+    const result = decode(build('x')) as any;
+    expect(result.pick('a')).toEqual([{ text: 'A' }]);
+    expect(result.pick('b')).toEqual([{ text: 'B' }]);
+    expect(result.pick('c')).toEqual([{ text: 'other' }]);
   });
 
   it('nested for loops', () => {
     const result = decode(
-      '{ grid: [for(row in %{var:rows}%) { [for(col in %{row}%) { %{col}% }] }] }',
-      { rows: [[1, 2], [3, 4]] },
+      '{ grid: [for(row in %{[[1,2],[3,4]]}%) { [for(col in %{row}%) { %{col}% }] }] }',
     ) as any;
     expect(result.grid).toEqual([[1, 2], [3, 4]]);
   });
 
   it('for + if combined', () => {
     const result = decode(
-      '{ items: [for(n in %{var:nums}%) { if(%{n > 2}%) { %{n}% } }] }',
-      { nums: [1, 2, 3, 4, 5] },
+      '{ items: [for(n in %{[1,2,3,4,5]}%) { if(%{n > 2}%) { %{n}% } }] }',
     ) as any;
     expect(result.items).toEqual([3, 4, 5]);
   });
@@ -297,8 +240,7 @@ describe('decode', () => {
 
   it('loop-scoped meta via name::index and name::length', () => {
     const result = decode(
-      '{ items: [for(row in %{var:rows}%) { { n: %{row}%, idx: %{row::index}%, total: %{row::length}% } }] }',
-      { rows: ['a', 'b', 'c'] },
+      '{ items: [for(row in %{["a","b","c"]}%) { { n: %{row}%, idx: %{row::index}%, total: %{row::length}% } }] }',
     ) as any;
     expect(result.items).toEqual([
       { n: 'a', idx: 0, total: 3 },
@@ -310,7 +252,7 @@ describe('decode', () => {
   it('nested loops keep independent index/length via name::', () => {
     const result = decode(
       `{
-        grid: [for(row in %{var:rows}%) {
+        grid: [for(row in %{[{cells:["a","b"]},{cells:["c","d","e"]}]}%) {
           [for(col in %{row.cells}%) {
             {
               value: %{col}%,
@@ -322,12 +264,6 @@ describe('decode', () => {
           }]
         }]
       }`,
-      {
-        rows: [
-          { cells: ['a', 'b'] },
-          { cells: ['c', 'd', 'e'] },
-        ],
-      },
     ) as any;
     expect(result.grid[0][0]).toEqual({ value: 'a', rowIdx: 0, colIdx: 0, rowTotal: 2, colTotal: 2 });
     expect(result.grid[0][1]).toEqual({ value: 'b', rowIdx: 0, colIdx: 1, rowTotal: 2, colTotal: 2 });
@@ -336,8 +272,7 @@ describe('decode', () => {
 
   it('if as object property value drops property when skipped', () => {
     const result = decode(
-      '{ fontSize: 12, optional: if(%{var:show}%) { "visible" } }',
-      { show: false },
+      '{ fontSize: 12, optional: if(%{false}%) { "visible" } }',
     ) as any;
     expect(result).toEqual({ fontSize: 12 });
     expect('optional' in result).toBe(false);
@@ -345,15 +280,12 @@ describe('decode', () => {
 
   it('if as object property value keeps property when taken', () => {
     const result = decode(
-      '{ fontSize: 12, optional: if(%{var:show}%) { "visible" } }',
-      { show: true },
+      '{ fontSize: 12, optional: if(%{true}%) { "visible" } }',
     ) as any;
     expect(result).toEqual({ fontSize: 12, optional: 'visible' });
   });
 
   it('throws if iterable is not an array', () => {
-    expect(() =>
-      decode('{ x: for(n in %{var:bad}%) { %{n}% } }', { bad: 42 }),
-    ).toThrow();
+    expect(() => decode('{ x: for(n in %{42}%) { %{n}% } }')).toThrow();
   });
 });

@@ -1,3 +1,13 @@
+{%- set rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -%}
+{%- set showExtraColumn = true -%}
+{%- set items = [
+  { 'name': 'Alpha', 'value': 100, 'extra': 'A' },
+  { 'name': 'Beta',  'value': 200, 'extra': 'B' },
+  { 'name': 'Gamma', 'value': 300, 'extra': 'C' },
+  { 'name': 'Delta', 'value': 400, 'extra': 'D' }
+] -%}
+{%- set zebraRows = [0, 1, 2, 3, 4, 5, 6, 7] -%}
+{%- set borderRows = [0, 1, 2, 3, 4] -%}
 {
   content: [
     { text: 'Tables', style: 'header' },
@@ -10,14 +20,14 @@
       table: {
         body: [
           ['#', 'Column 1', 'Column 2', 'Column 3'],
-          for(i in %{var:rows}%) {
+          for(i in %{ {{ rows }} }%) {
             [%{i + 1}%, %{"Row " + (i + 1)}%, %{"A-" + (i + 1)}%, %{"B-" + (i + 1)}%]
           }
         ]
       }
     },
 
-    // Conditional column — only shown when var is set.
+    // Conditional column — only shown when the nunjucks var is set.
     { text: 'Conditional header column (toggle via vars)', style: 'subheader' },
     {
       style: 'tableExample',
@@ -27,26 +37,26 @@
           [
             { text: 'Name', style: 'tableHeader' },
             { text: 'Value', style: 'tableHeader' },
-            if(%{var:showExtraColumn}%) { { text: 'Extra', style: 'tableHeader' } }
+            if(%{ {{ showExtraColumn }} }%) { { text: 'Extra', style: 'tableHeader' } }
           ],
-          for(item in %{var:items}%) {
+          for(item in %{ {{ items }} }%) {
             [
               %{item.name}%,
               %{item.value}%,
-              if(%{var:showExtraColumn}%) { %{item.extra}% }
+              if(%{ {{ showExtraColumn }} }%) { %{item.extra}% }
             ]
           }
         ]
       }
     },
 
-    // Zebra striping via a given() callback — uses $index-style logic at runtime.
+    // Zebra striping via a given() callback.
     { text: 'Zebra stripes via given() layout callback', style: 'subheader' },
     {
       style: 'tableExample',
       table: {
         body: [
-          for(i in %{var:zebraRows}%) {
+          for(i in %{ {{ zebraRows }} }%) {
             [%{"Row " + (i + 1)}%, %{"Col 2 #" + (i + 1)}%, %{"Col 3 #" + (i + 1)}%]
           }
         ]
@@ -66,7 +76,7 @@
         widths: ['*', '*', '*'],
         body: [
           [{ text: 'H1', style: 'tableHeader' }, { text: 'H2', style: 'tableHeader' }, { text: 'H3', style: 'tableHeader' }],
-          for(i in %{var:borderRows}%) {
+          for(i in %{ {{ borderRows }} }%) {
             [%{"Sample " + (i + 1)}%, 'Sample value', 'Sample value']
           }
         ]

@@ -1,7 +1,7 @@
 import { Token, TokenType } from './types';
 import { LexerError } from './errors';
 import { Scanner } from './scanner';
-import { readString, readNumber, readIdentifierOrKeyword, readExprOrVar } from './readers';
+import { readString, readNumber, readIdentifierOrKeyword, readExpr } from './readers';
 
 export { Token, TokenType } from './types';
 export { LexerError } from './errors';
@@ -52,7 +52,7 @@ function resolveHandler(scanner: Scanner): CharHandler {
 
   // Two-char token: %{
   if (current === '%' && scanner.peek() === '{') {
-    return readExprOrVar;
+    return readExpr;
   }
 
   const handler = charHandlers.get(current);

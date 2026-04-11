@@ -3,7 +3,6 @@ import { EvalError } from './errors';
 import { Vars } from './types';
 import {
   evalLiteral,
-  evalVar,
   evalExpr,
   evalObject,
   evalArray,
@@ -16,7 +15,6 @@ type NodeHandler = (node: ASTNode, vars: Vars) => unknown;
 
 const NODE_HANDLERS: Record<string, NodeHandler> = {
   Literal:  (node, _vars) => evalLiteral(node as any),
-  Var:      (node, vars) => evalVar(node as any, vars),
   Expr:     (node, vars) => evalExpr(node as any, vars),
   Object:   (node, vars) => evalObject(node as any, vars),
   Array:    (node, vars) => evalArray(node as any, vars),

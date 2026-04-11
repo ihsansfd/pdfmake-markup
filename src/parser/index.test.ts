@@ -32,11 +32,6 @@ describe('Parser', () => {
     expect(ast.elements[2]).toEqual({ type: 'Literal', value: true });
   });
 
-  it('parses var references', () => {
-    const ast = parseStr('{ text: %{var:myText}% }') as ObjectNode;
-    expect(ast.properties[0]!.value).toEqual({ type: 'Var', name: 'myText' });
-  });
-
   it('parses expressions', () => {
     const ast = parseStr('{ size: %{base * 2}% }') as ObjectNode;
     expect(ast.properties[0]!.value).toEqual({ type: 'Expr', expression: 'base * 2' });

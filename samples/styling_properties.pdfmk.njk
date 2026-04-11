@@ -1,3 +1,13 @@
+{%- set opacities = [0.8, 0.6, 0.4, 0.2, 0.1] -%}
+{%- set fontFeatures = [['smcp'], ['c2sc'], ['onum'], ['onum', 'c2sc']] -%}
+{%- set showJsonBlock = true -%}
+{%- set jsonLines = [
+  '{',
+  '    "sample": {',
+  '        "json": "nested"',
+  '    }',
+  '}'
+] -%}
 {
   content: [
     {
@@ -12,21 +22,21 @@
     },
 
     '\n\nText opacity — generated via `for` over an array of opacities:',
-    for(op in %{var:opacities}%) {
+    for(op in %{ {{ opacities }} }%) {
       { text: %{"Hello World (" + op + ")"}%, opacity: %{op}% }
     },
 
     '\n\nfontFeatures — each entry is a `for` iteration with an `if` label for the first one:',
-    for(feat in %{var:fontFeatures}%) {
+    for(feat in %{ {{ fontFeatures }} }%) {
       {
-        text: %{"Hello World 1234567890" + ($index == 0 ? " [first]" : "")}%,
+        text: %{"Hello World 1234567890" + (feat::index == 0 ? " [first]" : "")}%,
         fontFeatures: %{feat}%
       }
     },
 
     '\n\nLeading-space lines from a data array (conditional block):',
-    if(%{var:showJsonBlock}%) {
-      [for(line in %{var:jsonLines}%) {
+    if(%{ {{ showJsonBlock }} }%) {
+      [for(line in %{ {{ jsonLines }} }%) {
         { text: %{line}%, preserveLeadingSpaces: true }
       }]
     } else {

@@ -1,14 +1,28 @@
+{%- set files = [
+  {
+    'label': 'pdfmake README',
+    'name': 'README.md',
+    'src': 'https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md',
+    'description': 'Canonical pdfmake documentation.'
+  },
+  {
+    'label': 'License file',
+    'name': 'LICENSE',
+    'src': 'https://raw.githubusercontent.com/bpampuch/pdfmake/master/LICENSE',
+    'description': null
+  }
+] -%}
 {
   // NOTE: pdfkit has a pre-existing bug rendering embedded file attachments in
   // this environment, so this sample focuses on demonstrating how for/if
   // generate the *visible* file listing. The attachments map is still built
-  // from the same vars payload and passed through.
+  // from the same data payload and passed through.
   content: [
     { text: 'Attachments Demo', style: 'header' },
-    'Each listed file is generated via a `for` loop over the vars payload.',
+    'Each listed file is generated via a `for` loop over the data payload.',
     ' ',
 
-    for(file in %{var:files}%) {
+    for(file in %{ {{ files }} }%) {
       {
         stack: [
           { text: %{"• " + file.label}%, bold: true, margin: [0, 6, 0, 2] },
@@ -26,7 +40,11 @@
     ' ',
     { text: %{"Total files: " + (files|length)}%, italics: true }
   ],
-  attachments: %{var:attachmentMap}%,
+  attachments: {
+    {%- for f in files %}
+    {{ f.name }}: { src: {{ f.src }}, name: {{ f.name }} }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+  },
   styles: {
     header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] }
   }

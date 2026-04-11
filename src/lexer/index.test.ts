@@ -51,12 +51,6 @@ describe('Lexer', () => {
     expect(strToken!.value).toBe("it's a test\n");
   });
 
-  it('tokenizes %{var:name}%', () => {
-    const tokens = tokenize('%{var:myVar}%');
-    expect(tokens[0]!.type).toBe(TokenType.VAR);
-    expect(tokens[0]!.value).toBe('myVar');
-  });
-
   it('tokenizes %{expression}%', () => {
     const tokens = tokenize('%{x + 1}%');
     expect(tokens[0]!.type).toBe(TokenType.EXPR);

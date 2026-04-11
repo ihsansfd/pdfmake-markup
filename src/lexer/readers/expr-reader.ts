@@ -2,20 +2,12 @@ import { Token, TokenType } from '../types';
 import { LexerError } from '../errors';
 import { Scanner } from '../scanner';
 
-export function readExprOrVar(scanner: Scanner): Token {
+export function readExpr(scanner: Scanner): Token {
   const startLine = scanner.currentLine;
   const startCol = scanner.currentCol;
   scanner.advance(); // skip %
   scanner.advance(); // skip {
 
-  // Check if it's a var reference: %{var:name}%
-  const varMatch = scanner.remaining().match(/^var:([a-zA-Z_$][a-zA-Z0-9_$]*)\}%/);
-  if (varMatch) {
-    scanner.advance(varMatch[0].length);
-    return { type: TokenType.VAR, value: varMatch[1], line: startLine, col: startCol };
-  }
-
-  // Otherwise it's an expression: %{...}%
   let expr = '';
   let depth = 0;
   while (!scanner.isAtEnd) {
