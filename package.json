@@ -1,7 +1,7 @@
 {
   "name": "pdfmake-markup",
   "version": "1.0.0",
-  "description": "A markup language that decodes into pdfmake document definition objects, with support for safe expressions, variables, and function callbacks",
+  "description": "A markup language that decodes into pdfmake document definition objects, with support for safe expressions, dynamic lists, and function callbacks",
   "author": "Ihsan Nurul Iman",
   "license": "MIT",
   "keywords": [

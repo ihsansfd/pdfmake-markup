@@ -1,7 +1,5 @@
 {
-  // NOTE: pdfkit has a pre-existing bug rendering embedded file attachments in
-  // this environment, so this sample focuses on demonstrating how map/if
-  // generate the *visible* file listing.
+  // This sample embeds local repo files so it stays renderable offline.
   content: [
     { text: 'Attachments Demo', style: 'header' },
     'Each listed file is generated via a `map` over inline data.',
@@ -9,16 +7,16 @@
 
     ...map(file in %{[
       {
-        label: "pdfmake README",
+        label: "Project README",
         name: "README.md",
-        src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md",
-        description: "Canonical pdfmake documentation."
+        src: "README.md",
+        description: "The published package overview and language guide."
       },
       {
-        label: "License file",
-        name: "LICENSE",
-        src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/LICENSE",
-        description: null
+        label: "Package manifest",
+        name: "package.json",
+        src: "package.json",
+        description: "Package metadata used for npm publishing."
       }
     ]}%) {
       {
@@ -36,8 +34,8 @@
     }
   ],
   attachments: {
-    "README.md": { src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md", name: "README.md" },
-    "LICENSE":   { src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/LICENSE",   name: "LICENSE"   }
+    "README.md":    { src: "README.md",    name: "README.md" },
+    "package.json": { src: "package.json", name: "package.json" }
   },
   styles: {
     header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] }

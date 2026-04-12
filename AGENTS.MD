@@ -45,16 +45,16 @@ src/
 
 - TypeScript → CommonJS in `dist/`. Run `npx tsc` to build.
 - Tests: [vitest](https://vitest.dev). Run `npx vitest run`.
-- Samples: `node sample-runner.js <name>` — reads `samples/<name>.pdfmk`, writes `samples/pdfs/<name>.pdf`. Samples are self-contained; all data is inlined as markup literals.
+- Samples: `node sample-runner.js <name>` — reads `samples/<name>.pdfmk`, writes `samples/pdfs/<name>.pdf`. Samples are self-contained and render offline; most inline their data directly, while `attachments.pdfmk` references local repo files.
 - VSCode extension (`vscode/extension.js`) provides `.pdfmk` diagnostics by re-running `tokenize` + `parse` on edit. When adding token/AST types, update `tokenLength()` there too.
 
 ## Samples
 
 `samples/` contains real pdfmake examples ported to `.pdfmk`:
 - `sample-query-with-given.pdfmk` — canonical demo
-- `basics.pdfmk`, `tables.pdfmk`, `styling_properties.pdfmk`, `snaking_columns.pdfmk`, `attachments.pdfmk`
+- `basics.pdfmk`, `tables.pdfmk`, `styling_properties.pdfmk`, `snaking_columns.pdfmk`, `attachments.pdfmk`, `iterations.pdfmk`
 
-All values are inlined (no external vars). `attachments.pdfmk` currently fails to render due to a pre-existing pdfkit bug (`Cannot read properties of undefined (reading 'getTime')` in `PDFDocument.file`) when handling data-URL attachments — unrelated to the decoder; decode itself succeeds.
+All values are inlined (no external vars). `attachments.pdfmk` is the one exception: it embeds local repo files (`README.md` and `package.json`) so the sample stays renderable offline without external network access.
 
 ## Conventions
 

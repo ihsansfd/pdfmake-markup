@@ -128,6 +128,19 @@ describe('decode', () => {
     expect(result.fn(1, { items: [1, 2, 3] })).toBe('other');
   });
 
+  it('does not rewrite special syntax inside string literals', () => {
+    const result = decode(`{
+      loopMeta: %{"row::index"}%,
+      propLength: %{"items.length"}%,
+      nullWord: %{"null"}%
+    }`) as any;
+    expect(result).toEqual({
+      loopMeta: 'row::index',
+      propLength: 'items.length',
+      nullWord: 'null',
+    });
+  });
+
   it('decodes pdfmake zebra stripe pattern', () => {
     const result = decode(`{
       layout: {

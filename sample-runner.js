@@ -12,6 +12,8 @@ pdfmake.addFonts({
   },
 });
 
+pdfmake.setUrlAccessPolicy((url) => !/^https?:\/\//i.test(url));
+
 function resolveFile(name) {
   const candidates = [
     name,
