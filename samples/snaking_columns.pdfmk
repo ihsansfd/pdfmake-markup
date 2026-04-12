@@ -1,0 +1,125 @@
+{
+  content: [
+    { text: 'Snaking Columns Demo', style: 'header' },
+    { text: 'The snakingColumns: true property allows content to flow from one column to the next on the same page.', style: 'description' },
+    ' ',
+
+    // Basic snaking column with repeated lorem text
+    {
+      columns: [
+        { text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ", width: '*' },
+        { text: '', width: '*' }
+      ],
+      columnGap: 30,
+      snakingColumns: true
+    },
+
+    { text: 'Content After Snaking Columns', style: 'subheader', margin: [0, 10, 0, 5] },
+    { text: 'Demonstrates that layout tracks the bottom of snaking content correctly.', style: 'description' },
+    ' ',
+
+    // Generate 80 lines via `map` — previously required a JS helper function.
+    { text: 'Detailed Description (80 generated lines via `map`)', style: 'sectionTitle', pageBreak: 'before' },
+    {
+      columns: [
+        {
+          stack: [
+            ...map(i in %{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79]}%) {
+              { text: %{"Line " + (i + 1) + ": Lorem ipsum dolor sit amet."}%, fontSize: 9 }
+            }
+          ]
+        },
+        { text: '' }
+      ],
+      columnGap: 30,
+      snakingColumns: true
+    },
+
+    // Text nodes via `map` + conditional margin on first/last using loop-scoped meta
+    { text: 'Stack of text nodes (with i::index / i::length awareness)', style: 'sectionTitle', pageBreak: 'before' },
+    {
+      columns: [
+        {
+          stack: [
+            ...map(i in %{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]}%) {
+              {
+                text: %{"Item " + (i + 1) + " — a description"}%,
+                margin: [
+                  0,
+                  %{i::index == 0 ? 0 : 5}%,
+                  0,
+                  %{i::index == i::length - 1 ? 0 : 5}%
+                ]
+              }
+            }
+          ],
+          width: '*'
+        },
+        { text: '', width: '*' }
+      ],
+      columnGap: 20,
+      snakingColumns: true
+    },
+
+    // Unbreakable cards via `map` — previously a dedicated JS helper
+    { text: 'Unbreakable Cards (via `map`, each marked unbreakable)', style: 'header', pageBreak: 'before' },
+    { text: 'Each card stays together when flowing between columns.', style: 'description' },
+    ' ',
+    {
+      columns: [
+        {
+          stack: [
+            ...map(i in %{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]}%) {
+              {
+                stack: [
+                  { text: %{"Card " + (i + 1)}%, fontSize: 14, bold: true, margin: [0, 0, 0, 5] },
+                  { text: %{"This is a description for card " + (i + 1) + ". All content in this card stays together."}%, fontSize: 10 },
+                  if(%{i < 5}%) {
+                    { text: 'Status: Featured', fontSize: 9, color: '#c0392b', margin: [0, 5, 0, 0] }
+                  } else {
+                    { text: 'Status: Active', fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+                  }
+                ],
+                margin: [0, 0, 0, 10],
+                fillColor: '#f9f9f9',
+                unbreakable: true
+              }
+            }
+          ]
+        },
+        { text: '' }
+      ],
+      columnGap: 30,
+      snakingColumns: true
+    },
+
+    // Dynamic table inside snaking columns — header + N rows via map.
+    { text: 'Generated Table inside Snaking Columns', style: 'header', pageBreak: 'before' },
+    ' ',
+    {
+      columns: [
+        {
+          table: {
+            headerRows: 1,
+            body: [
+              ['Header 1', 'Header 2', 'Header 3'],
+              ...map(i in %{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]}%) {
+                [%{"Row " + (i + 1)}%, 'Column 2', 'Column 3']
+              }
+            ]
+          },
+          width: '*'
+        },
+        { text: '', width: '*' }
+      ],
+      columnGap: 30,
+      snakingColumns: true
+    }
+  ],
+  styles: {
+    header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+    subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
+    sectionTitle: { fontSize: 12, bold: true, color: '#2c3e50', margin: [0, 0, 0, 8] },
+    description: { fontSize: 10, italics: true, color: '#666', margin: [0, 0, 0, 5] }
+  }
+}

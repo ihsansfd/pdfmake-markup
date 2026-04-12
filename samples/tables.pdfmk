@@ -1,34 +1,24 @@
-{%- set rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -%}
-{%- set showExtraColumn = true -%}
-{%- set items = [
-  { 'name': 'Alpha', 'value': 100, 'extra': 'A' },
-  { 'name': 'Beta',  'value': 200, 'extra': 'B' },
-  { 'name': 'Gamma', 'value': 300, 'extra': 'C' },
-  { 'name': 'Delta', 'value': 400, 'extra': 'D' }
-] -%}
-{%- set zebraRows = [0, 1, 2, 3, 4, 5, 6, 7] -%}
-{%- set borderRows = [0, 1, 2, 3, 4] -%}
 {
   content: [
     { text: 'Tables', style: 'header' },
-    'Ported from pdfmake/examples/tables.js — showcases for/if for dynamic table generation.',
+    'Ported from pdfmake/examples/tables.js — showcases map/if for dynamic table generation.',
 
-    // Simple table generated from a row count via `for`.
-    { text: 'A simple generated table (10 rows via `for`)', style: 'subheader' },
+    // Simple table generated from a row count via `map`.
+    { text: 'A simple generated table (10 rows via `map`)', style: 'subheader' },
     {
       style: 'tableExample',
       table: {
         body: [
           ['#', 'Column 1', 'Column 2', 'Column 3'],
-          for(i in %{ {{ rows }} }%) {
+          ...map(i in %{[0,1,2,3,4,5,6,7,8,9]}%) {
             [%{i + 1}%, %{"Row " + (i + 1)}%, %{"A-" + (i + 1)}%, %{"B-" + (i + 1)}%]
           }
         ]
       }
     },
 
-    // Conditional column — only shown when the nunjucks var is set.
-    { text: 'Conditional header column (toggle via vars)', style: 'subheader' },
+    // Conditional column — only shown when the flag is true.
+    { text: 'Conditional header column', style: 'subheader' },
     {
       style: 'tableExample',
       table: {
@@ -37,13 +27,18 @@
           [
             { text: 'Name', style: 'tableHeader' },
             { text: 'Value', style: 'tableHeader' },
-            if(%{ {{ showExtraColumn }} }%) { { text: 'Extra', style: 'tableHeader' } }
+            if(%{true}%) { { text: 'Extra', style: 'tableHeader' } }
           ],
-          for(item in %{ {{ items }} }%) {
+          ...map(item in %{[
+            {name: "Alpha", value: 100, extra: "A"},
+            {name: "Beta",  value: 200, extra: "B"},
+            {name: "Gamma", value: 300, extra: "C"},
+            {name: "Delta", value: 400, extra: "D"}
+          ]}%) {
             [
               %{item.name}%,
               %{item.value}%,
-              if(%{ {{ showExtraColumn }} }%) { %{item.extra}% }
+              if(%{true}%) { %{item.extra}% }
             ]
           }
         ]
@@ -56,7 +51,7 @@
       style: 'tableExample',
       table: {
         body: [
-          for(i in %{ {{ zebraRows }} }%) {
+          ...map(i in %{[0,1,2,3,4,5,6,7]}%) {
             [%{"Row " + (i + 1)}%, %{"Col 2 #" + (i + 1)}%, %{"Col 3 #" + (i + 1)}%]
           }
         ]
@@ -76,7 +71,7 @@
         widths: ['*', '*', '*'],
         body: [
           [{ text: 'H1', style: 'tableHeader' }, { text: 'H2', style: 'tableHeader' }, { text: 'H3', style: 'tableHeader' }],
-          for(i in %{ {{ borderRows }} }%) {
+          ...map(i in %{[0,1,2,3,4]}%) {
             [%{"Sample " + (i + 1)}%, 'Sample value', 'Sample value']
           }
         ]

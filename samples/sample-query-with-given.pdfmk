@@ -1,17 +1,16 @@
-{%- set title = 'Sample Invoice' -%}
-{%- set subtitle = 'Generated using pdfmake-markup' -%}
-{%- set footerPrefix = 'pdfmake-markup sample' -%}
 {
 	pageMargins: [40, 40, 40, 60],
 	footer:
 		given(currentPage, pageCount) {
-			text: {{ footerPrefix }},
-			alignment: 'center',
-			margin: [0, 20, 0, 0]
+			{
+				text: 'pdfmake-markup sample',
+				alignment: 'center',
+				margin: [0, 20, 0, 0]
+			}
 		},
 	content: [
-		{ text: {{ title }}, style: 'header' },
-		{{ subtitle }},
+		{ text: 'Sample Invoice', style: 'header' },
+		'Generated using pdfmake-markup',
 		'',
 		{
 			style: 'tableExample',

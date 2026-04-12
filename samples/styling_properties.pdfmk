@@ -1,13 +1,3 @@
-{%- set opacities = [0.8, 0.6, 0.4, 0.2, 0.1] -%}
-{%- set fontFeatures = [['smcp'], ['c2sc'], ['onum'], ['onum', 'c2sc']] -%}
-{%- set showJsonBlock = true -%}
-{%- set jsonLines = [
-  '{',
-  '    "sample": {',
-  '        "json": "nested"',
-  '    }',
-  '}'
-] -%}
 {
   content: [
     {
@@ -21,13 +11,13 @@
       italics: true
     },
 
-    '\n\nText opacity — generated via `for` over an array of opacities:',
-    for(op in %{ {{ opacities }} }%) {
+    '\n\nText opacity — generated via `map` over an array of opacities:',
+    ...map(op in %{[0.8, 0.6, 0.4, 0.2, 0.1]}%) {
       { text: %{"Hello World (" + op + ")"}%, opacity: %{op}% }
     },
 
-    '\n\nfontFeatures — each entry is a `for` iteration with an `if` label for the first one:',
-    for(feat in %{ {{ fontFeatures }} }%) {
+    '\n\nfontFeatures — each entry is a `map` iteration with a label for the first one:',
+    ...map(feat in %{[["smcp"], ["c2sc"], ["onum"], ["onum", "c2sc"]]}%) {
       {
         text: %{"Hello World 1234567890" + (feat::index == 0 ? " [first]" : "")}%,
         fontFeatures: %{feat}%
@@ -35,12 +25,18 @@
     },
 
     '\n\nLeading-space lines from a data array (conditional block):',
-    if(%{ {{ showJsonBlock }} }%) {
-      [for(line in %{ {{ jsonLines }} }%) {
+    ...if(%{true}%) {
+      map(line in %{[
+        "{",
+        "    \"sample\": {",
+        "        \"json\": \"nested\"",
+        "    }",
+        "}"
+      ]}%) {
         { text: %{line}%, preserveLeadingSpaces: true }
-      }]
+      }
     } else {
-      { text: '(JSON block hidden)', italics: true, color: 'gray' }
+      [{ text: '(JSON block hidden)', italics: true, color: 'gray' }]
     },
 
     '\n\nSubscript, superscript — single literal, unchanged:',

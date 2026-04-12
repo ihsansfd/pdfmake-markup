@@ -7,7 +7,7 @@ const KEYWORD_MAP: Record<string, () => { type: TokenType; value: unknown }> = {
   'false':     () => ({ type: TokenType.BOOLEAN, value: false }),
   'null':      () => ({ type: TokenType.NULL, value: null }),
   'undefined': () => ({ type: TokenType.NULL, value: undefined }),
-  'for':       () => ({ type: TokenType.FOR, value: 'for' }),
+  'map':       () => ({ type: TokenType.MAP, value: 'map' }),
   'in':        () => ({ type: TokenType.IN, value: 'in' }),
   'if':        () => ({ type: TokenType.IF, value: 'if' }),
   'else':      () => ({ type: TokenType.ELSE, value: 'else' }),

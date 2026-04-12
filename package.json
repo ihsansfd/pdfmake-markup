@@ -44,7 +44,6 @@
   "devDependencies": {
     "@types/jexl": "^2.3.4",
     "@types/node": "^25.6.0",
-    "nunjucks": "^3.2.4",
     "pdfmake": "^0.3.7",
     "typescript": "^6.0.2",
     "vitest": "^4.1.4"

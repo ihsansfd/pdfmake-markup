@@ -1,0 +1,45 @@
+{
+  // NOTE: pdfkit has a pre-existing bug rendering embedded file attachments in
+  // this environment, so this sample focuses on demonstrating how map/if
+  // generate the *visible* file listing.
+  content: [
+    { text: 'Attachments Demo', style: 'header' },
+    'Each listed file is generated via a `map` over inline data.',
+    ' ',
+
+    ...map(file in %{[
+      {
+        label: "pdfmake README",
+        name: "README.md",
+        src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md",
+        description: "Canonical pdfmake documentation."
+      },
+      {
+        label: "License file",
+        name: "LICENSE",
+        src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/LICENSE",
+        description: null
+      }
+    ]}%) {
+      {
+        stack: [
+          { text: %{"• " + file.label}%, bold: true, margin: [0, 6, 0, 2] },
+          if(%{file.description}%) {
+            { text: %{file.description}%, fontSize: 9, italics: true, color: '#666' }
+          } else {
+            { text: '(no description)', fontSize: 9, italics: true, color: '#999' }
+          },
+          { text: %{"source: " + file.src}%, fontSize: 8, color: '#888' }
+        ],
+        margin: [0, 0, 0, 8]
+      }
+    }
+  ],
+  attachments: {
+    "README.md": { src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md", name: "README.md" },
+    "LICENSE":   { src: "https://raw.githubusercontent.com/bpampuch/pdfmake/master/LICENSE",   name: "LICENSE"   }
+  },
+  styles: {
+    header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] }
+  }
+}

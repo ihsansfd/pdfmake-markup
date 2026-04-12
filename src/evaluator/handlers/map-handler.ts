@@ -1,13 +1,13 @@
-import { ForNode } from '../../parser';
+import { MapNode } from '../../parser';
 import { EvalError } from '../errors';
 import { Vars } from '../types';
 import { evalNode } from '../eval-node';
 import { IF_SKIP } from './if-handler';
 
-export function evalFor(node: ForNode, vars: Vars): unknown[] {
+export function evalMap(node: MapNode, vars: Vars): unknown[] {
   const iterable = evalNode(node.iterable, vars);
   if (!Array.isArray(iterable)) {
-    throw new EvalError(`for loop iterable must be an array, got ${typeof iterable}`);
+    throw new EvalError(`map iterable must be an array, got ${typeof iterable}`);
   }
 
   const results: unknown[] = [];

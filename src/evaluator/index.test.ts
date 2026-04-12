@@ -32,10 +32,12 @@ describe('decode', () => {
   it('decodes a function that returns an object', () => {
     const result = decode(`{
       margins: given(currentPage, pageCount, pageSize) {
-        left: %{currentPage == 1 ? 80 : 40}%,
-        top: 40,
-        right: %{currentPage == 1 ? 40 : 80}%,
-        bottom: 40
+        {
+          left: %{currentPage == 1 ? 80 : 40}%,
+          top: 40,
+          right: %{currentPage == 1 ? 40 : 80}%,
+          bottom: 40
+        }
       }
     }`) as any;
     expect(typeof result.margins).toBe('function');
@@ -145,9 +147,9 @@ describe('decode', () => {
     expect('border' in result).toBe(true);
   });
 
-  it('expands for loop inside an array', () => {
+  it('spreads map result inside an array', () => {
     const result = decode(
-      '{ content: [for(item in %{[{name:"a"},{name:"b"},{name:"c"}]}%) { { text: %{item.name}% } }] }',
+      '{ content: [...map(item in %{[{name:"a"},{name:"b"},{name:"c"}]}%) { { text: %{item.name}% } }] }',
     ) as any;
     expect(result.content).toEqual([
       { text: 'a' },
@@ -158,21 +160,21 @@ describe('decode', () => {
 
   it('uses name::index for first/last detection', () => {
     const result = decode(
-      '{ items: [for(r in %{["a","b","c"]}%) { { text: %{r}%, isFirst: %{r::index == 0}%, isLast: %{r::index == r::length - 1}% } }] }',
+      '{ items: [...map(r in %{["a","b","c"]}%) { { text: %{r}%, isFirst: %{r::index == 0}%, isLast: %{r::index == r::length - 1}% } }] }',
     ) as any;
     expect(result.items[0]).toMatchObject({ isFirst: true, isLast: false });
     expect(result.items[1]).toMatchObject({ isFirst: false, isLast: false });
     expect(result.items[2]).toMatchObject({ isFirst: false, isLast: true });
   });
 
-  it('for loop as top-level value', () => {
-    const result = decode('for(n in %{[1,2,3]}%) { %{n * 2}% }') as any;
+  it('map as top-level value', () => {
+    const result = decode('map(n in %{[1,2,3]}%) { %{n * 2}% }') as any;
     expect(result).toEqual([2, 4, 6]);
   });
 
-  it('for loop with implicit object body', () => {
+  it('map spread with explicit object body', () => {
     const result = decode(
-      '{ rows: [for(row in %{["a","b"]}%) { text: %{row}%, bold: true }] }',
+      '{ rows: [...map(row in %{["a","b"]}%) { { text: %{row}%, bold: true } }] }',
     ) as any;
     expect(result.rows).toEqual([
       { text: 'a', bold: true },
@@ -217,30 +219,30 @@ describe('decode', () => {
     expect(result.pick('c')).toEqual([{ text: 'other' }]);
   });
 
-  it('nested for loops', () => {
+  it('nested maps', () => {
     const result = decode(
-      '{ grid: [for(row in %{[[1,2],[3,4]]}%) { [for(col in %{row}%) { %{col}% }] }] }',
+      '{ grid: [...map(row in %{[[1,2],[3,4]]}%) { [...map(col in %{row}%) { %{col}% }] }] }',
     ) as any;
     expect(result.grid).toEqual([[1, 2], [3, 4]]);
   });
 
-  it('for + if combined', () => {
+  it('map + if combined', () => {
     const result = decode(
-      '{ items: [for(n in %{[1,2,3,4,5]}%) { if(%{n > 2}%) { %{n}% } }] }',
+      '{ items: [...map(n in %{[1,2,3,4,5]}%) { if(%{n > 2}%) { %{n}% } }] }',
     ) as any;
     expect(result.items).toEqual([3, 4, 5]);
   });
 
-  it('for loop inside given body uses argument as iterable', () => {
+  it('map inside given body uses argument as iterable', () => {
     const result = decode(
-      '{ fn: given(rows) { [for(r in %{rows}%) { %{r * 10}% }] } }',
+      '{ fn: given(rows) { [...map(r in %{rows}%) { %{r * 10}% }] } }',
     ) as any;
     expect(result.fn([1, 2, 3])).toEqual([10, 20, 30]);
   });
 
   it('loop-scoped meta via name::index and name::length', () => {
     const result = decode(
-      '{ items: [for(row in %{["a","b","c"]}%) { { n: %{row}%, idx: %{row::index}%, total: %{row::length}% } }] }',
+      '{ items: [...map(row in %{["a","b","c"]}%) { { n: %{row}%, idx: %{row::index}%, total: %{row::length}% } }] }',
     ) as any;
     expect(result.items).toEqual([
       { n: 'a', idx: 0, total: 3 },
@@ -252,8 +254,8 @@ describe('decode', () => {
   it('nested loops keep independent index/length via name::', () => {
     const result = decode(
       `{
-        grid: [for(row in %{[{cells:["a","b"]},{cells:["c","d","e"]}]}%) {
-          [for(col in %{row.cells}%) {
+        grid: [...map(row in %{[{cells:["a","b"]},{cells:["c","d","e"]}]}%) {
+          [...map(col in %{row.cells}%) {
             {
               value: %{col}%,
               rowIdx: %{row::index}%,
@@ -286,6 +288,45 @@ describe('decode', () => {
   });
 
   it('throws if iterable is not an array', () => {
-    expect(() => decode('{ x: for(n in %{42}%) { %{n}% } }')).toThrow();
+    expect(() => decode('{ x: map(n in %{42}%) { %{n}% } }')).toThrow();
+  });
+
+  describe('return-value invariants', () => {
+    it('given always returns a function', () => {
+      expect(typeof (decode('{ f: given(x) { %{x}% } }') as any).f).toBe('function');
+      expect(typeof (decode('{ f: given() { if(%{false}%) { 1 } } }') as any).f).toBe('function');
+      expect(typeof (decode('{ f: given() { map(i in %{[1,2]}%) { %{i}% } } }') as any).f).toBe('function');
+    });
+
+    it('map always returns an array', () => {
+      expect(Array.isArray(decode('map(i in %{[]}%) { %{i}% }'))).toBe(true);
+      expect(Array.isArray(decode('map(i in %{[1,2,3]}%) { %{i}% }'))).toBe(true);
+      expect(Array.isArray(decode('map(i in %{[1,2]}%) { if(%{false}%) { %{i}% } }'))).toBe(true);
+    });
+
+    it('if with false cond and no else returns undefined at top level (not IF_SKIP)', () => {
+      const result = decode('if(%{false}%) { { text: "hi" } }');
+      expect(result).toBeUndefined();
+      expect(typeof result).toBe('undefined');
+    });
+
+    it('given body that skips via if returns undefined (not IF_SKIP)', () => {
+      const result = decode('{ f: given(x) { if(%{x > 10}%) { %{x}% } } }') as any;
+      expect(result.f(20)).toBe(20);
+      expect(result.f(5)).toBeUndefined();
+    });
+
+    it('nested if where outer taken, inner skipped, inside object drops the property', () => {
+      const result = decode(
+        '{ a: 1, b: if(%{true}%) { if(%{false}%) { "x" } } }',
+      ) as any;
+      expect(result).toEqual({ a: 1 });
+      expect('b' in result).toBe(false);
+    });
+
+    it('map body that always skips via if returns empty array', () => {
+      const result = decode('map(i in %{[1,2,3]}%) { if(%{false}%) { %{i}% } }');
+      expect(result).toEqual([]);
+    });
   });
 });

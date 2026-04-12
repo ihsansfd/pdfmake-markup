@@ -13,10 +13,11 @@ export enum TokenType {
   NULL = 'NULL',
   IDENTIFIER = 'IDENTIFIER',
   GIVEN = 'GIVEN',
-  FOR = 'FOR',
+  MAP = 'MAP',
   IN = 'IN',
   IF = 'IF',
   ELSE = 'ELSE',
+  SPREAD = 'SPREAD',
   EXPR = 'EXPR',
   EOF = 'EOF',
 }

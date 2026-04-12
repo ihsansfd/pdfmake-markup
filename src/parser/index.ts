@@ -4,7 +4,7 @@ import { ParseError } from './errors';
 import { TokenStream } from './token-stream';
 import { parseValue } from './parsers';
 
-export { ASTNode, LiteralNode, ExprNode, ObjectNode, ArrayNode, FunctionNode, ForNode, IfNode } from './types';
+export { ASTNode, LiteralNode, ExprNode, ObjectNode, ArrayNode, FunctionNode, MapNode, IfNode, SpreadNode } from './types';
 export { ParseError } from './errors';
 
 export function parse(tokens: Token[]): ASTNode {

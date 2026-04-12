@@ -7,7 +7,7 @@ import {
   evalObject,
   evalArray,
   evalFunction,
-  evalFor,
+  evalMap,
   evalIf,
 } from './handlers';
 
@@ -19,7 +19,7 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
   Object:   (node, vars) => evalObject(node as any, vars),
   Array:    (node, vars) => evalArray(node as any, vars),
   Function: (node, vars) => evalFunction(node as any, vars),
-  For:      (node, vars) => evalFor(node as any, vars),
+  Map:      (node, vars) => evalMap(node as any, vars),
   If:       (node, vars) => evalIf(node as any, vars),
 };
 

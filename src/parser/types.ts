@@ -4,8 +4,9 @@ export type ASTNode =
   | ObjectNode
   | ArrayNode
   | FunctionNode
-  | ForNode
-  | IfNode;
+  | MapNode
+  | IfNode
+  | SpreadNode;
 
 export interface LiteralNode {
   type: 'Literal';
@@ -38,8 +39,8 @@ export interface FunctionNode {
   body: ASTNode;
 }
 
-export interface ForNode {
-  type: 'For';
+export interface MapNode {
+  type: 'Map';
   varName: string;
   iterable: ASTNode;
   body: ASTNode;
@@ -50,4 +51,9 @@ export interface IfNode {
   cond: ASTNode;
   then: ASTNode;
   else?: ASTNode;
+}
+
+export interface SpreadNode {
+  type: 'Spread';
+  value: ASTNode;
 }

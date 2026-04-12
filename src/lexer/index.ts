@@ -47,12 +47,26 @@ function buildCharHandlers(): Map<string, CharHandler> {
 
 const charHandlers = buildCharHandlers();
 
+function readSpread(scanner: Scanner): Token {
+  const line = scanner.currentLine;
+  const col = scanner.currentCol;
+  scanner.advance();
+  scanner.advance();
+  scanner.advance();
+  return { type: TokenType.SPREAD, value: '...', line, col };
+}
+
 function resolveHandler(scanner: Scanner): CharHandler {
   const current = scanner.current()!;
 
   // Two-char token: %{
   if (current === '%' && scanner.peek() === '{') {
     return readExpr;
+  }
+
+  // Three-char token: ...
+  if (current === '.' && scanner.peek() === '.' && scanner.peek(2) === '.') {
+    return readSpread;
   }
 
   const handler = charHandlers.get(current);

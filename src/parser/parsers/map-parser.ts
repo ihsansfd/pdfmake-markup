@@ -1,12 +1,12 @@
 import { TokenType } from '../../lexer';
-import { ForNode } from '../types';
+import { MapNode } from '../types';
 import { TokenStream } from '../token-stream';
 import { ParseError } from '../errors';
 import { parseValue } from './value-parser';
 import { parseBlockBody } from './function-parser';
 
-export function parseFor(stream: TokenStream): ForNode {
-  stream.expectThenAdvance(TokenType.FOR);
+export function parseMap(stream: TokenStream): MapNode {
+  stream.expectThenAdvance(TokenType.MAP);
   stream.expectThenAdvance(TokenType.LPAREN);
 
   const varToken = stream.current();
@@ -24,5 +24,5 @@ export function parseFor(stream: TokenStream): ForNode {
   const body = parseBlockBody(stream);
   stream.expectThenAdvance(TokenType.RBRACE);
 
-  return { type: 'For', varName, iterable, body };
+  return { type: 'Map', varName, iterable, body };
 }

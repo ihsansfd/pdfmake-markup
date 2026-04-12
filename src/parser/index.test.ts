@@ -38,7 +38,7 @@ describe('Parser', () => {
   });
 
   it('parses a function with object body', () => {
-    const ast = parseStr('given(a, b) { x: %{a + b}% }') as FunctionNode;
+    const ast = parseStr('given(a, b) { { x: %{a + b}% } }') as FunctionNode;
     expect(ast.type).toBe('Function');
     expect(ast.given).toEqual(['a', 'b']);
     const body = ast.body as ObjectNode;
