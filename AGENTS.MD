@@ -8,14 +8,15 @@ Guidance for AI agents working in this repo.
 
 ## Design philosophy
 
-**Minimal.** The library's unique value is `given()` functions with jexl runtime expressions that cannot be pre-computed. Everything else is out of scope.
+**Minimal.** The library's unique value is `given()` functions with runtime expressions that cannot be pre-computed. Everything else is either a direct enabler of that, or exists because pdfmake docDefs need dynamic arrays/objects that plain JSON can't express.
 
 - **No variable substitution** (`%{var:name}%` does not exist). Use Nunjucks or similar on the backend to render the markup before sending it.
-- **No loops, conditionals, or static templating.** Same reason — belongs in Nunjucks.
-- **Expressions (`%{...}%`) work anywhere**, not just inside `given()` bodies. Top-level literal expressions like `{ size: %{10 * 2}% }` are allowed.
-- **`given()` bodies** can contain a single expression, an object, or an array. Expressions inside have access to the function's parameters at call time.
+- **Expressions (`%{...}%`)** work anywhere — users write markup-native syntax inside; jexl is an implementation detail and must not be exposed in user-facing docs or error messages.
+- **`given(args) { body }`** compiles to a real JS function. Body must be an explicit value (object literal requires `{ { ... } }`, no implicit-object sugar).
+- **`map(x in iterable) { body }`** always returns an array. To splice its result into a parent array, use the spread operator `...map(...)`. Same for `...if(...)` when the branch returns an array.
+- **`if(cond) { then } else { else }`** returns the chosen branch's value, or a sentinel `IF_SKIP` when there's no else and the condition is false. `IF_SKIP` is filtered out in array/object contexts (drops the element/property) and unwrapped to `undefined` at `evaluate()` top-level and `given` return.
 
-If asked to add templating features (vars, loops, conditionals, includes), push back: this is a deliberate design choice. The user already decided Nunjucks handles that layer.
+If asked to add templating features (vars, static includes, string interpolation), push back: that belongs in Nunjucks on the backend.
 
 ## Architecture
 
@@ -33,17 +34,18 @@ src/
   index.ts        decode(markup: string): unknown
 ```
 
-- **Token types**: LBRACE RBRACE LBRACKET RBRACKET COLON COMMA STRING NUMBER BOOLEAN NULL IDENTIFIER GIVEN EXPR EOF. (No VAR.)
-- **AST nodes**: Literal, Expr, Object, Array, Function. (No VarNode.)
-- **Expression engine**: [jexl](https://github.com/TomFrost/Jexl). `.length` is auto-rewritten to `|length` for convenience. `null` literal is supported via a sentinel.
-- **`given(args) { body }`** compiles to a real JS function. When called, each Expr node in the body is evaluated against a scope built from the function's arguments.
+- **Token types**: LBRACE RBRACE LBRACKET RBRACKET LPAREN RPAREN COLON COMMA STRING NUMBER BOOLEAN NULL IDENTIFIER GIVEN MAP IN IF ELSE SPREAD EXPR EOF.
+- **AST nodes**: Literal, Expr, Object, Array, Function, Map, If, Spread.
+- **Expression engine**: [jexl](https://github.com/TomFrost/Jexl) under the hood — hidden from users. Users write plain markup values inside `%{...}%`; internally we transform (`.length` → `|length`, etc.) and wrap object literals via `markupLiteral`. Never surface the word "jexl" in docs or errors.
+- **`given(args) { body }`** compiles to a real JS function. Body is parsed by `parseBlockBody = parseValue` (no implicit-object sugar). On return, `IF_SKIP` is unwrapped to `undefined` so the function always returns a usable value.
+- **`map` / `if` / `...`**: `map` always returns an array, filtering `IF_SKIP` per iteration. `if` returns the chosen branch's value or `IF_SKIP`. The array handler recognizes `SpreadNode` to splice array operands in, and filters `IF_SKIP` for non-spread elements and spread operands. The object handler drops properties whose value is `IF_SKIP`.
 - **Dispatch pattern**: both `parser/parsers/value-parser.ts` and `evaluator/eval-node.ts` use a `Record<TokenType | NodeType, handler>` map. Add new node types by adding an entry.
 
 ## Build & test
 
 - TypeScript → CommonJS in `dist/`. Run `npx tsc` to build.
 - Tests: [vitest](https://vitest.dev). Run `npx vitest run`.
-- Samples: `node sample-runner.js <name>` — reads `samples/<name>.pdfmk`, writes `samples/pdfs/<name>.pdf`. No vars argument; samples are self-contained.
+- Samples: `node sample-runner.js <name>` — reads `samples/<name>.pdfmk`, writes `samples/pdfs/<name>.pdf`. Samples are self-contained; all data is inlined as markup literals.
 - VSCode extension (`vscode/extension.js`) provides `.pdfmk` diagnostics by re-running `tokenize` + `parse` on edit. When adding token/AST types, update `tokenLength()` there too.
 
 ## Samples

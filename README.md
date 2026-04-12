@@ -1,10 +1,10 @@
 # pdfmake-markup
 
-A markup language that decodes into [pdfmake](https://github.com/bpampuch/pdfmake) document definition objects, with support for safe expressions, variables, and function callbacks — no `eval()`.
+A markup language that decodes into [pdfmake](https://github.com/bpampuch/pdfmake) document definition objects, with support for safe expressions, dynamic lists, and function callbacks — no `eval()`.
 
 ## Why?
 
-pdfmake defines documents as JavaScript objects. These objects can contain functions (for dynamic layouts, headers, footers, etc.) and reference variables. This makes them impossible to serialize as JSON and send over the network.
+pdfmake defines documents as JavaScript objects. These objects can contain functions (for dynamic layouts, headers, footers, etc.) and runtime-only logic. This makes them impossible to serialize as JSON and send over the network.
 
 **pdfmake-markup** solves this by providing a markup format (`.pdfmk`) that can be stored as a plain string, sent from backend to frontend, and decoded at runtime into a real JS object with live functions — safely, without `eval`.
 
@@ -20,68 +20,48 @@ npm install pdfmake-markup
 const { decode } = require('pdfmake-markup');
 const pdfMake = require('pdfmake');
 
-// Markup can come from a file, database, API, etc.
 const markup = `{
   content: [
-    { text: %{var:title}%, bold: true, fontSize: 18 },
-    %{var:body}%
+    { text: 'Hello World', bold: true, fontSize: 18 },
+    'This was decoded from a markup string.'
   ]
 }`;
 
-// decode() returns a real JS object ready for pdfmake
-const docDefinition = decode(markup, {
-  title: 'Hello World',
-  body: 'This was decoded from a markup string.',
-});
-
+const docDefinition = decode(markup);
 pdfMake.createPdf(docDefinition).download();
 ```
 
+Need per-request substitution (e.g. injecting a user's name)? Render the markup with [Nunjucks](https://mozilla.github.io/nunjucks/) or any string templating tool on the backend **before** calling `decode`. pdfmake-markup intentionally does not ship its own variable system.
+
 ## Syntax
 
-The `.pdfmk` format is a superset of JSON-like object notation with three additions:
+`.pdfmk` is a superset of JSON-like object notation. Keys can be unquoted, trailing commas are allowed, `null`/`undefined` are supported, and both `//` line and `/* ... */` block comments work.
 
-### Variables: `%{var:name}%`
-
-Substituted at decode time from the context object.
-
-```
-{ text: %{var:username}% }
-```
-
-```js
-decode(markup, { username: 'Alice' });
-// => { text: 'Alice' }
-```
+On top of that, it adds four constructs:
 
 ### Expressions: `%{...}%`
 
-Safe expressions evaluated at decode time using [jexl](https://github.com/TomFrost/Jexl). Supports arithmetic, ternary, comparisons, property access, and modulo.
+Safe expressions evaluated at decode time. Supports arithmetic, ternary, comparisons, property access, modulo, and string concatenation.
 
 ```
-{ fontSize: %{base * 2}%, color: %{score > 90 ? "green" : "red"}% }
+{ fontSize: %{(10 + 2) * 2}%, color: %{95 > 90 ? "green" : "red"}% }
 ```
 
-```js
-decode(markup, { base: 10, score: 95 });
-// => { fontSize: 20, color: 'green' }
+Inside `given()` bodies, expressions also have access to the function's arguments:
+
+```
+given(row) { %{(row + 1) * 25}% }
 ```
 
-### Functions: `given(...) { }`
+### Functions: `given(args) { body }`
 
-Becomes a real JavaScript function. Expressions inside the body are evaluated each time the function is called, with access to both function arguments and decode context.
+Compiles to a real JavaScript function. The body is re-evaluated every time the function is called.
 
 ```
 {
-  table: {
-    heights: given(row) {
-      %{(row + 1) * 25}%
-    },
-    body: [["A", "B"], ["C", "D"]]
-  },
   layout: {
     hLineWidth: given(i, node) {
-      %{(i == 0 || i == (node.table.body|length)) ? 2 : 1}%
+      %{(i == 0 || i == node.table.body.length) ? 2 : 1}%
     },
     fillColor: given(rowIndex, node, columnIndex) {
       %{rowIndex % 2 == 0 ? "#CCCCCC" : null}%
@@ -90,49 +70,91 @@ Becomes a real JavaScript function. Expressions inside the body are evaluated ea
 }
 ```
 
-Function bodies can return:
-- A single expression: `given(x) { %{x * 2}% }`
-- An object: `given(page) { left: %{page % 2 == 0 ? 80 : 40}%, top: 40 }`
-- An array: `given(x) { [%{x}%, %{x + 1}%] }`
-
-### Comments
-
-Both line and block comments are supported.
+The body must be an explicit value. If you want to return an object literal, wrap it in braces:
 
 ```
-{
-  // line comment
-  a: 1,
-  /* block comment */
-  b: 2
+margins: given(currentPage) {
+  {
+    left: %{currentPage == 1 ? 80 : 40}%,
+    top: 40,
+    right: 40,
+    bottom: 40
+  }
 }
 ```
 
-### Other features
+### Loops: `map(x in iterable) { body }`
 
-- Unquoted object keys: `{ fontSize: 18 }` (like JavaScript)
-- Single and double quoted strings: `'hello'` or `"hello"`
-- Trailing commas: `{ a: 1, b: 2, }`
-- `null` and `undefined` literals
-- Nested objects and arrays
+Always returns an array, one entry per iteration. The iterable must itself be an array.
+
+```
+rows: map(row in %{["a", "b", "c"]}%) {
+  { text: %{row}%, bold: true }
+}
+```
+
+Inside the body you can reference `x::index` and `x::length` for first/last detection:
+
+```
+map(row in %{["a", "b", "c"]}%) {
+  {
+    text: %{row}%,
+    isFirst: %{row::index == 0}%,
+    isLast:  %{row::index == row::length - 1}%
+  }
+}
+```
+
+### Conditionals: `if(cond) { then } else { else }`
+
+Returns the chosen branch's value. `else if` chains and the plain `else` clause are both optional. When an `if` with no `else` is not taken, the result is dropped from the surrounding array or object.
+
+```
+{
+  content: [
+    { text: 'Header' },
+    if(%{showBody}%) { { text: 'Body' } },      // dropped when false
+    if(%{tier == "gold"}%) { { text: 'Gold' } }
+    else if(%{tier == "silver"}%) { { text: 'Silver' } }
+    else { { text: 'Free' } }
+  ]
+}
+```
+
+### Spread: `...value`
+
+Splices an array into its parent array. Use it when `map` (or an `if` branch that returns an array) should contribute many elements rather than a single nested array.
+
+```
+content: [
+  { text: 'Intro' },
+  ...map(p in %{["one", "two", "three"]}%) {
+    { text: %{p}%, margin: [0, 4, 0, 0] }
+  },
+  { text: 'Outro' }
+]
+```
+
+Without the `...`, `map(...) { ... }` would appear as a single nested array element. The spread is required and explicit — there is no implicit array-flattening anywhere in the language.
 
 ## Expression notes
 
-Expressions use [jexl](https://github.com/TomFrost/Jexl) syntax, which is similar to JavaScript with a few differences:
+Expressions support a JavaScript-like subset:
 
-- Use `==` instead of `===` (strict equality is not supported)
-- `.length` on arrays/strings is auto-converted to jexl's `|length` transform — both `arr.length` and `arr|length` work
-- `null` is supported in expressions
-- Property access works: `node.table.body`, `obj.nested.value`
+- Arithmetic: `+ - * / %`
+- Comparisons: `==` (use `==`, not `===`), `!=`, `<`, `<=`, `>`, `>=`
+- Logical: `&&`, `||`, `!`
+- Ternary: `cond ? a : b`
+- Property access: `node.table.body`, `obj.nested.value`
+- `.length` on arrays/strings
+- String concatenation with `+`
+- `null` literal
 
 ## API
 
-### `decode(markup: string, vars?: Record<string, unknown>): unknown`
+### `decode(markup: string): unknown`
 
-Parses a `.pdfmk` markup string and returns a JavaScript object.
-
-- **markup** — the `.pdfmk` string
-- **vars** — variables available to `%{var:name}%` and `%{expr}%`
+Parses a `.pdfmk` markup string and returns the decoded JavaScript value (typically the pdfmake document definition).
 
 ## License
 
