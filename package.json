@@ -35,6 +35,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
+    "sample": "npm run build && node sample-runner.js",
+    "sample:all": "npm run build && node sample-runner.js --all",
     "verify": "npm run build && npm test",
     "prepublishOnly": "npm run verify"
   },
