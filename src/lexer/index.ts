@@ -1,86 +1,68 @@
-import { Token, TokenType } from './types';
-import { LexerError } from './errors';
-import { Scanner } from './scanner';
-import { readString, readNumber, readIdentifierOrKeyword, readExpr } from './readers';
+import { Token, TokenType } from "./types";
+import { LexerError } from "./errors";
+import { Scanner } from "./scanner";
+import {
+  readString,
+  readNumber,
+  readIdentifierOrKeyword,
+  readExpr,
+} from "./readers";
 
-export { Token, TokenType } from './types';
-export { LexerError } from './errors';
+export { Token, TokenType } from "./types";
+export { LexerError } from "./errors";
 
 type CharHandler = (scanner: Scanner) => Token;
 
-const SINGLE_CHAR_TOKENS: Record<string, TokenType> = {
-  '{': TokenType.LBRACE,
-  '}': TokenType.RBRACE,
-  '[': TokenType.LBRACKET,
-  ']': TokenType.RBRACKET,
-  '(': TokenType.LPAREN,
-  ')': TokenType.RPAREN,
-  ':': TokenType.COLON,
-  ',': TokenType.COMMA,
-};
-
-function createPunctuationHandler(type: TokenType): CharHandler {
+function directValueToken(type: TokenType, value: string): CharHandler {
   return (scanner) => {
     const token: Token = {
       type,
-      value: scanner.current()!,
+      value,
       line: scanner.currentLine,
       col: scanner.currentCol,
     };
-    scanner.advance();
+    scanner.advance(value.length);
     return token;
   };
 }
 
-function buildCharHandlers(): Map<string, CharHandler> {
-  const handlers = new Map<string, CharHandler>();
+const HANDLER_CHAIN: [(c: string, s: Scanner) => boolean, CharHandler][] = [
+  // Multi-char tokens
+  [(c, s) => c === "%" && s.peek() === "{", readExpr],
+  [(c, s) => c === "." && s.peek() === "." && s.peek(2) === ".", directValueToken(TokenType.SPREAD, "...")],
 
-  for (const [char, type] of Object.entries(SINGLE_CHAR_TOKENS)) {
-    handlers.set(char, createPunctuationHandler(type));
-  }
+  // Single-char tokens
+  [(c) => c === "{", directValueToken(TokenType.LBRACE, "{")],
+  [(c) => c === "}", directValueToken(TokenType.RBRACE, "}")],
+  [(c) => c === "[", directValueToken(TokenType.LBRACKET, "[")],
+  [(c) => c === "]", directValueToken(TokenType.RBRACKET, "]")],
+  [(c) => c === "(", directValueToken(TokenType.LPAREN, "(")],
+  [(c) => c === ")", directValueToken(TokenType.RPAREN, ")")],
+  [(c) => c === ":", directValueToken(TokenType.COLON, ":")],
+  [(c) => c === ",", directValueToken(TokenType.COMMA, ",")],
+  [(c) => c === '"', (s) => readString(s, '"')],
+  [(c) => c === "'", (s) => readString(s, "'")],
 
-  handlers.set('"', (scanner) => readString(scanner, '"'));
-  handlers.set("'", (scanner) => readString(scanner, "'"));
+  // Numbers (including negative)
+  [(c, s) => c === "-" && /[0-9]/.test(s.peek() ?? ""), readNumber],
+  [(c) => /[0-9]/.test(c), readNumber],
 
-  return handlers;
-}
-
-const charHandlers = buildCharHandlers();
-
-function readSpread(scanner: Scanner): Token {
-  const line = scanner.currentLine;
-  const col = scanner.currentCol;
-  scanner.advance();
-  scanner.advance();
-  scanner.advance();
-  return { type: TokenType.SPREAD, value: '...', line, col };
-}
+  // Identifiers and keywords
+  [(c) => /[a-zA-Z_$]/.test(c), readIdentifierOrKeyword],
+];
 
 function resolveHandler(scanner: Scanner): CharHandler {
   const current = scanner.current()!;
 
-  // Two-char token: %{
-  if (current === '%' && scanner.peek() === '{') {
-    return readExpr;
+  for (const [match, handler] of HANDLER_CHAIN) {
+    if (match(current, scanner)) return handler;
   }
 
-  // Three-char token: ...
-  if (current === '.' && scanner.peek() === '.' && scanner.peek(2) === '.') {
-    return readSpread;
-  }
-
-  const handler = charHandlers.get(current);
-  if (handler) return handler;
-
-  // Negative number
-  if (current === '-' && /[0-9]/.test(scanner.peek() ?? '')) {
-    return readNumber;
-  }
-
-  if (/[0-9]/.test(current)) return readNumber;
-  if (/[a-zA-Z_$]/.test(current)) return readIdentifierOrKeyword;
-
-  throw new LexerError(`Unexpected character: ${current}`, scanner.currentLine, scanner.currentCol);
+  throw new LexerError(
+    `Unexpected character: ${current}`,
+    scanner.currentLine,
+    scanner.currentCol,
+  );
 }
 
 export function tokenize(input: string): Token[] {
@@ -95,6 +77,11 @@ export function tokenize(input: string): Token[] {
     tokens.push(handler(scanner));
   }
 
-  tokens.push({ type: TokenType.EOF, value: null, line: scanner.currentLine, col: scanner.currentCol });
+  tokens.push({
+    type: TokenType.EOF,
+    value: null,
+    line: scanner.currentLine,
+    col: scanner.currentCol,
+  });
   return tokens;
 }
