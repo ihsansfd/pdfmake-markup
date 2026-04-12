@@ -1,0 +1,77 @@
+{
+  content: [
+    { text: 'Iteration Samples', style: 'header' },
+    'This sample demonstrates supported array-based iteration patterns with map().',
+
+    { text: 'Array iteration', style: 'subheader' },
+    {
+      ul: [
+        ...map(item in %{[
+          "First item from an array",
+          "Second item from an array",
+          "Third item from an array"
+        ]}%) {
+          {
+            text: %{"Item " + (item::index + 1) + " of " + item::length + ": " + item}%,
+            margin: [0, 2, 0, 2]
+          }
+        }
+      ]
+    },
+
+    { text: 'Nested iteration', style: 'subheader' },
+    {
+      columns: [
+        ...map(row in %{[
+          { group: "A", values: ["Alpha", "Beta"] },
+          { group: "B", values: ["Gamma", "Delta", "Epsilon"] }
+        ]}%) {
+          {
+            width: '*',
+            stack: [
+              {
+                text: %{"Group " + row.group + " (" + (row::index + 1) + "/" + row::length + ")"}%,
+                style: 'tableHeader',
+                margin: [0, 0, 0, 6]
+              },
+              ...map(col in %{row.values}%) {
+                {
+                  text: %{"Value " + (col::index + 1) + ": " + col}%,
+                  margin: [0, 0, 0, 4]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      columnGap: 18,
+      margin: [0, 4, 0, 14]
+    },
+
+    { text: 'Conditional iteration output', style: 'subheader' },
+    {
+      ol: [
+        ...map(n in %{[1,2,3,4,5,6]}%) {
+          if(%{n % 2 == 0}%) {
+            %{"Even number: " + n}%
+          }
+        }
+      ]
+    },
+
+    { text: 'Map result without spread stays nested', style: 'subheader' },
+    {
+      text: 'The next paragraph is followed by a nested array returned by map().',
+      margin: [0, 0, 0, 6]
+    },
+    map(label in %{["Nested 1", "Nested 2"]}%) {
+      { text: %{label}%, color: '#555555' }
+    }
+  ],
+  styles: {
+    header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+    subheader: { fontSize: 14, bold: true, margin: [0, 14, 0, 6] },
+    tableExample: { margin: [0, 4, 0, 14] },
+    tableHeader: { bold: true, color: 'black' }
+  }
+}
